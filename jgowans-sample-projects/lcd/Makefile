@@ -24,4 +24,4 @@ startup_stm32f051.o: startup_stm32f051.s
 
 clean:
 # if using linux, replace "del" with "rm"
-	del *.o *.elf *.bin
+	$(RM) *.o *.elf *.bin
