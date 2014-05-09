@@ -199,14 +199,15 @@ init_adc:
 	mov	r2, #144
 	lsl	r2, r2, #23
 	ldr	r2, [r2]
-	mov	r1, #3
+	mov	r1, #192
+	lsl	r1, r1, #6
 	orr	r2, r1
 	str	r2, [r3]
 	.loc 1 39 0
 	ldr	r3, .L11+4
 	ldr	r2, .L11+4
 	ldr	r2, [r2, #40]
-	mov	r1, #1
+	mov	r1, #64
 	orr	r2, r1
 	str	r2, [r3, #40]
 	.loc 1 40 0
@@ -245,19 +246,20 @@ init_adc:
 .LFE35:
 	.size	init_adc, .-init_adc
 .Letext0:
-	.file 2 "c:\\program files (x86)\\gnu tools arm embedded\\4.8 2013q4\\arm-none-eabi\\include\\stdint.h"
-	.file 3 "C:\\STM32F0_Development\\STM32F0xx_StdPeriph_Lib_V1.3.1\\Libraries\\CMSIS\\Device\\ST\\STM32F0xx\\Include/stm32f0xx.h"
+	.file 2 "/usr/include/newlib/machine/_default_types.h"
+	.file 3 "/usr/include/newlib/stdint.h"
+	.file 4 "../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Device/ST/STM32F0xx/Include/stm32f0xx.h"
 	.section	.debug_info,"",%progbits
 .Ldebug_info0:
-	.4byte	0x33a
+	.4byte	0x350
 	.2byte	0x4
 	.4byte	.Ldebug_abbrev0
 	.byte	0x4
 	.uleb128 0x1
-	.4byte	.LASF42
-	.byte	0x1
-	.4byte	.LASF43
 	.4byte	.LASF44
+	.byte	0x1
+	.4byte	.LASF45
+	.4byte	.LASF46
 	.4byte	.Ltext0
 	.4byte	.Letext0-.Ltext0
 	.4byte	.Ldebug_line0
@@ -276,7 +278,7 @@ init_adc:
 	.uleb128 0x3
 	.4byte	.LASF5
 	.byte	0x2
-	.byte	0x36
+	.byte	0x26
 	.4byte	0x45
 	.uleb128 0x2
 	.byte	0x2
@@ -289,7 +291,7 @@ init_adc:
 	.uleb128 0x3
 	.4byte	.LASF6
 	.byte	0x2
-	.byte	0x50
+	.byte	0x38
 	.4byte	0x5e
 	.uleb128 0x2
 	.byte	0x4
@@ -311,311 +313,321 @@ init_adc:
 	.byte	0x4
 	.byte	0x7
 	.4byte	.LASF10
+	.uleb128 0x3
+	.4byte	.LASF11
+	.byte	0x3
+	.byte	0x36
+	.4byte	0x3a
+	.uleb128 0x3
+	.4byte	.LASF12
+	.byte	0x3
+	.byte	0x42
+	.4byte	0x53
 	.uleb128 0x2
 	.byte	0x4
 	.byte	0x7
-	.4byte	.LASF11
+	.4byte	.LASF13
 	.uleb128 0x5
-	.4byte	0x53
+	.4byte	0x8c
 	.uleb128 0x6
-	.4byte	0x53
-	.4byte	0x9d
+	.4byte	0x8c
+	.4byte	0xb3
 	.uleb128 0x7
-	.4byte	0x81
+	.4byte	0x97
 	.byte	0x1
 	.byte	0
 	.uleb128 0x8
 	.byte	0x44
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x17c
-	.4byte	0x14d
+	.4byte	0x163
 	.uleb128 0x9
 	.ascii	"ISR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x17e
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0
 	.uleb128 0x9
 	.ascii	"IER\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x17f
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x4
 	.uleb128 0x9
 	.ascii	"CR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x180
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x8
 	.uleb128 0xa
-	.4byte	.LASF12
-	.byte	0x3
+	.4byte	.LASF14
+	.byte	0x4
 	.2byte	0x181
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0xc
 	.uleb128 0xa
-	.4byte	.LASF13
-	.byte	0x3
+	.4byte	.LASF15
+	.byte	0x4
 	.2byte	0x182
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x10
 	.uleb128 0xa
-	.4byte	.LASF14
-	.byte	0x3
+	.4byte	.LASF16
+	.byte	0x4
 	.2byte	0x183
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x14
 	.uleb128 0xa
-	.4byte	.LASF15
-	.byte	0x3
+	.4byte	.LASF17
+	.byte	0x4
 	.2byte	0x184
-	.4byte	0x53
+	.4byte	0x8c
 	.byte	0x18
 	.uleb128 0xa
-	.4byte	.LASF16
-	.byte	0x3
+	.4byte	.LASF18
+	.byte	0x4
 	.2byte	0x185
-	.4byte	0x53
+	.4byte	0x8c
 	.byte	0x1c
 	.uleb128 0x9
 	.ascii	"TR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x186
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x20
 	.uleb128 0xa
-	.4byte	.LASF17
-	.byte	0x3
+	.4byte	.LASF19
+	.byte	0x4
 	.2byte	0x187
-	.4byte	0x53
+	.4byte	0x8c
 	.byte	0x24
 	.uleb128 0xa
-	.4byte	.LASF18
-	.byte	0x3
+	.4byte	.LASF20
+	.byte	0x4
 	.2byte	0x188
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x28
 	.uleb128 0xa
-	.4byte	.LASF19
-	.byte	0x3
+	.4byte	.LASF21
+	.byte	0x4
 	.2byte	0x189
-	.4byte	0x14d
+	.4byte	0x163
 	.byte	0x2c
 	.uleb128 0x9
 	.ascii	"DR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x18a
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x40
 	.byte	0
 	.uleb128 0x6
-	.4byte	0x53
-	.4byte	0x15d
+	.4byte	0x8c
+	.4byte	0x173
 	.uleb128 0x7
-	.4byte	0x81
+	.4byte	0x97
 	.byte	0x4
 	.byte	0
 	.uleb128 0xb
-	.4byte	.LASF20
-	.byte	0x3
+	.4byte	.LASF22
+	.byte	0x4
 	.2byte	0x18b
-	.4byte	0x9d
+	.4byte	0xb3
 	.uleb128 0x5
-	.4byte	0x3a
+	.4byte	0x81
 	.uleb128 0x8
 	.byte	0x2c
-	.byte	0x3
-	.2byte	0x269
-	.4byte	0x22e
-	.uleb128 0xa
-	.4byte	.LASF21
-	.byte	0x3
-	.2byte	0x26b
-	.4byte	0x88
-	.byte	0
-	.uleb128 0xa
-	.4byte	.LASF22
-	.byte	0x3
-	.2byte	0x26c
-	.4byte	0x169
 	.byte	0x4
+	.2byte	0x269
+	.4byte	0x244
 	.uleb128 0xa
 	.4byte	.LASF23
-	.byte	0x3
-	.2byte	0x26d
-	.4byte	0x3a
-	.byte	0x6
+	.byte	0x4
+	.2byte	0x26b
+	.4byte	0x9e
+	.byte	0
 	.uleb128 0xa
 	.4byte	.LASF24
-	.byte	0x3
-	.2byte	0x26e
-	.4byte	0x88
-	.byte	0x8
+	.byte	0x4
+	.2byte	0x26c
+	.4byte	0x17f
+	.byte	0x4
 	.uleb128 0xa
 	.4byte	.LASF25
-	.byte	0x3
+	.byte	0x4
+	.2byte	0x26d
+	.4byte	0x81
+	.byte	0x6
+	.uleb128 0xa
+	.4byte	.LASF26
+	.byte	0x4
+	.2byte	0x26e
+	.4byte	0x9e
+	.byte	0x8
+	.uleb128 0xa
+	.4byte	.LASF27
+	.byte	0x4
 	.2byte	0x26f
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0xc
 	.uleb128 0x9
 	.ascii	"IDR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x270
-	.4byte	0x169
+	.4byte	0x17f
 	.byte	0x10
 	.uleb128 0xa
-	.4byte	.LASF15
-	.byte	0x3
+	.4byte	.LASF17
+	.byte	0x4
 	.2byte	0x271
-	.4byte	0x3a
+	.4byte	0x81
 	.byte	0x12
 	.uleb128 0x9
 	.ascii	"ODR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x272
-	.4byte	0x169
+	.4byte	0x17f
 	.byte	0x14
 	.uleb128 0xa
-	.4byte	.LASF16
-	.byte	0x3
+	.4byte	.LASF18
+	.byte	0x4
 	.2byte	0x273
-	.4byte	0x3a
+	.4byte	0x81
 	.byte	0x16
 	.uleb128 0xa
-	.4byte	.LASF26
-	.byte	0x3
+	.4byte	.LASF28
+	.byte	0x4
 	.2byte	0x274
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x18
 	.uleb128 0xa
-	.4byte	.LASF27
-	.byte	0x3
+	.4byte	.LASF29
+	.byte	0x4
 	.2byte	0x275
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x1c
 	.uleb128 0x9
 	.ascii	"AFR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x276
-	.4byte	0x22e
+	.4byte	0x244
 	.byte	0x20
 	.uleb128 0x9
 	.ascii	"BRR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x277
-	.4byte	0x169
+	.4byte	0x17f
 	.byte	0x28
 	.uleb128 0xa
-	.4byte	.LASF17
-	.byte	0x3
+	.4byte	.LASF19
+	.byte	0x4
 	.2byte	0x278
-	.4byte	0x3a
+	.4byte	0x81
 	.byte	0x2a
 	.byte	0
 	.uleb128 0x5
-	.4byte	0x8d
+	.4byte	0xa3
 	.uleb128 0xb
-	.4byte	.LASF28
-	.byte	0x3
+	.4byte	.LASF30
+	.byte	0x4
 	.2byte	0x279
-	.4byte	0x16e
+	.4byte	0x184
 	.uleb128 0x8
 	.byte	0x38
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x2b5
-	.4byte	0x2fe
+	.4byte	0x314
 	.uleb128 0x9
 	.ascii	"CR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x2b7
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0
 	.uleb128 0xa
-	.4byte	.LASF29
-	.byte	0x3
+	.4byte	.LASF31
+	.byte	0x4
 	.2byte	0x2b8
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x4
 	.uleb128 0x9
 	.ascii	"CIR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x2b9
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x8
 	.uleb128 0xa
-	.4byte	.LASF30
-	.byte	0x3
+	.4byte	.LASF32
+	.byte	0x4
 	.2byte	0x2ba
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0xc
 	.uleb128 0xa
-	.4byte	.LASF31
-	.byte	0x3
+	.4byte	.LASF33
+	.byte	0x4
 	.2byte	0x2bb
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x10
 	.uleb128 0xa
-	.4byte	.LASF32
-	.byte	0x3
+	.4byte	.LASF34
+	.byte	0x4
 	.2byte	0x2bc
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x14
 	.uleb128 0xa
-	.4byte	.LASF33
-	.byte	0x3
+	.4byte	.LASF35
+	.byte	0x4
 	.2byte	0x2bd
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x18
 	.uleb128 0xa
-	.4byte	.LASF34
-	.byte	0x3
+	.4byte	.LASF36
+	.byte	0x4
 	.2byte	0x2be
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x1c
 	.uleb128 0xa
-	.4byte	.LASF35
-	.byte	0x3
+	.4byte	.LASF37
+	.byte	0x4
 	.2byte	0x2bf
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x20
 	.uleb128 0x9
 	.ascii	"CSR\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x2c0
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x24
 	.uleb128 0xa
-	.4byte	.LASF36
-	.byte	0x3
+	.4byte	.LASF38
+	.byte	0x4
 	.2byte	0x2c1
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x28
 	.uleb128 0xa
-	.4byte	.LASF13
-	.byte	0x3
+	.4byte	.LASF15
+	.byte	0x4
 	.2byte	0x2c2
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x2c
 	.uleb128 0xa
-	.4byte	.LASF37
-	.byte	0x3
+	.4byte	.LASF39
+	.byte	0x4
 	.2byte	0x2c3
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x30
 	.uleb128 0x9
 	.ascii	"CR2\000"
-	.byte	0x3
+	.byte	0x4
 	.2byte	0x2c4
-	.4byte	0x88
+	.4byte	0x9e
 	.byte	0x34
 	.byte	0
 	.uleb128 0xb
-	.4byte	.LASF38
-	.byte	0x3
+	.4byte	.LASF40
+	.byte	0x4
 	.2byte	0x2c5
-	.4byte	0x23f
+	.4byte	0x255
 	.uleb128 0xc
-	.4byte	.LASF39
+	.4byte	.LASF41
 	.byte	0x1
 	.byte	0x8
 	.4byte	.LFB33
@@ -623,7 +635,7 @@ init_adc:
 	.uleb128 0x1
 	.byte	0x9c
 	.uleb128 0xd
-	.4byte	.LASF40
+	.4byte	.LASF42
 	.byte	0x1
 	.byte	0x17
 	.4byte	.LFB34
@@ -631,7 +643,7 @@ init_adc:
 	.uleb128 0x1
 	.byte	0x9c
 	.uleb128 0xd
-	.4byte	.LASF41
+	.4byte	.LASF43
 	.byte	0x1
 	.byte	0x23
 	.4byte	.LFB35
@@ -838,96 +850,99 @@ init_adc:
 	.section	.debug_line,"",%progbits
 .Ldebug_line0:
 	.section	.debug_str,"MS",%progbits,1
-.LASF27:
-	.ascii	"LCKR\000"
-.LASF24:
-	.ascii	"OSPEEDR\000"
 .LASF29:
-	.ascii	"CFGR\000"
-.LASF32:
-	.ascii	"AHBENR\000"
-.LASF21:
-	.ascii	"MODER\000"
-.LASF36:
-	.ascii	"AHBRSTR\000"
-.LASF44:
-	.ascii	"C:\\STM32F0_Development\\JGowans-sample-projects\\a"
-	.ascii	"dc-reader\000"
+	.ascii	"LCKR\000"
 .LASF26:
-	.ascii	"BSRR\000"
-.LASF41:
-	.ascii	"init_adc\000"
-.LASF18:
-	.ascii	"CHSELR\000"
-.LASF23:
-	.ascii	"RESERVED0\000"
-.LASF15:
-	.ascii	"RESERVED1\000"
-.LASF16:
-	.ascii	"RESERVED2\000"
-.LASF17:
-	.ascii	"RESERVED3\000"
-.LASF19:
-	.ascii	"RESERVED4\000"
-.LASF37:
-	.ascii	"CFGR3\000"
-.LASF22:
-	.ascii	"OTYPER\000"
-.LASF40:
-	.ascii	"init_leds\000"
+	.ascii	"OSPEEDR\000"
 .LASF31:
+	.ascii	"CFGR\000"
+.LASF34:
+	.ascii	"AHBENR\000"
+.LASF23:
+	.ascii	"MODER\000"
+.LASF38:
+	.ascii	"AHBRSTR\000"
+.LASF37:
+	.ascii	"BDCR\000"
+.LASF28:
+	.ascii	"BSRR\000"
+.LASF43:
+	.ascii	"init_adc\000"
+.LASF20:
+	.ascii	"CHSELR\000"
+.LASF25:
+	.ascii	"RESERVED0\000"
+.LASF17:
+	.ascii	"RESERVED1\000"
+.LASF18:
+	.ascii	"RESERVED2\000"
+.LASF19:
+	.ascii	"RESERVED3\000"
+.LASF21:
+	.ascii	"RESERVED4\000"
+.LASF39:
+	.ascii	"CFGR3\000"
+.LASF24:
+	.ascii	"OTYPER\000"
+.LASF42:
+	.ascii	"init_leds\000"
+.LASF33:
 	.ascii	"APB1RSTR\000"
+.LASF44:
+	.ascii	"GNU C 4.8.2 -mcpu=cortex-m0 -mthumb -g\000"
 .LASF1:
 	.ascii	"unsigned char\000"
-.LASF12:
+.LASF14:
 	.ascii	"CFGR1\000"
 .LASF7:
 	.ascii	"long unsigned int\000"
 .LASF3:
 	.ascii	"short unsigned int\000"
-.LASF6:
+.LASF12:
 	.ascii	"uint32_t\000"
-.LASF33:
+.LASF5:
+	.ascii	"__uint16_t\000"
+.LASF35:
 	.ascii	"APB2ENR\000"
-.LASF39:
-	.ascii	"main\000"
-.LASF34:
+.LASF6:
+	.ascii	"__uint32_t\000"
+.LASF36:
 	.ascii	"APB1ENR\000"
-.LASF42:
-	.ascii	"GNU C 4.8.3 20131129 (release) [ARM/embedded-4_8-br"
-	.ascii	"anch revision 205641] -mcpu=cortex-m0 -mthumb -g\000"
-.LASF30:
+.LASF32:
 	.ascii	"APB2RSTR\000"
+.LASF41:
+	.ascii	"main\000"
 .LASF10:
 	.ascii	"unsigned int\000"
-.LASF28:
+.LASF30:
 	.ascii	"GPIO_TypeDef\000"
 .LASF9:
 	.ascii	"long long unsigned int\000"
-.LASF14:
+.LASF16:
 	.ascii	"SMPR\000"
-.LASF35:
-	.ascii	"BDCR\000"
-.LASF11:
+.LASF13:
 	.ascii	"sizetype\000"
-.LASF25:
+.LASF27:
 	.ascii	"PUPDR\000"
 .LASF8:
 	.ascii	"long long int\000"
-.LASF43:
+.LASF45:
 	.ascii	"main.c\000"
+.LASF46:
+	.ascii	"/home/jgowans/stm32f0_sample_code/jgowans-sample-pr"
+	.ascii	"ojects/adc-reader\000"
 .LASF2:
 	.ascii	"short int\000"
-.LASF5:
+.LASF11:
 	.ascii	"uint16_t\000"
-.LASF38:
+.LASF40:
 	.ascii	"RCC_TypeDef\000"
 .LASF4:
 	.ascii	"long int\000"
-.LASF20:
+.LASF22:
 	.ascii	"ADC_TypeDef\000"
 .LASF0:
 	.ascii	"signed char\000"
-.LASF13:
+.LASF15:
 	.ascii	"CFGR2\000"
-	.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.8.3 20131129 (release) [ARM/embedded-4_8-branch revision 205641]"
+	.ident	"GCC: (4.8.2-14ubuntu1+6) 4.8.2"
