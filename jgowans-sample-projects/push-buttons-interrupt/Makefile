@@ -1,6 +1,6 @@
 CC = arm-none-eabi-gcc
-DEVICE_INCLUDES = -I C:\STM32F0_Development\STM32F0xx_StdPeriph_Lib_V1.3.1\Libraries\CMSIS\Device\ST\STM32F0xx\Include
-ARM_INCLUDES = -I C:\STM32F0_Development\STM32F0xx_StdPeriph_Lib_V1.3.1\Libraries\CMSIS\Include
+DEVICE_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Device/ST/STM32F0xx/Include
+ARM_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Include
 CC_FLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -mcpu=cortex-m0 -mthumb -S -g --std=c99
 
 AS = arm-none-eabi-as
@@ -29,5 +29,4 @@ main.s: main.c
 	$(CC) $(CC_FLAGS) main.c
 
 clean:
-# if using linux, replace "del" with "rm"
-	del main.s main.o main.elf main.bin
+	$(RM) main.s main.o main.elf main.bin

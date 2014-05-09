@@ -10,6 +10,7 @@ void EXTI4_15_IRQHandler(void);
 
 void main(void)
 {
+	int i = 0;
 	init_leds();
 	init_push_buttons();
 	init_EXTI();
@@ -17,13 +18,22 @@ void main(void)
 	
 	for(;;) {
 		GPIOB->ODR += 1;
-		for(volatile int i = 0; i < 65535; i++);
+		for(i = 0; i < 65535; i++);
 	}
 	
 }
 
-void EXTI4_15_IRQHandler(void) {
-	EXTI->PR |= EXTI_PR_PR12;
+void EXTI0_1_IRQHandler(void) {
+	// clear the interrupt pending bit by writing to it
+	EXTI->PR |= EXTI_PR_PR0;
+	// display a pattern on the LEDs
+	GPIOB->ODR = 0x00;
+}
+
+void EXTI2_3_IRQHandler(void) {
+	// clear the interrupt pending bit by writing to it
+	EXTI->PR |= EXTI_PR_PR0;
+	// display a pattern on the LEDs
 	GPIOB->ODR = 0x00;
 }
 
@@ -40,26 +50,27 @@ void init_leds(void) {
 }
 
 void init_push_buttons(void) {
-	RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable clock for push-buttons
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN; //enable clock for push-buttons
 	// set pins to inputs
-	GPIOB->MODER &= ~GPIO_MODER_MODER12; //set PB12 to input
-	GPIOB->MODER &= ~GPIO_MODER_MODER13; //set PB13 to input
-	GPIOB->MODER &= ~GPIO_MODER_MODER14; //set PB14 to input
-	GPIOB->MODER &= ~GPIO_MODER_MODER15; //set PB15 to input 
+	GPIOA->MODER &= ~GPIO_MODER_MODER0; //set PA0 to input
+	GPIOA->MODER &= ~GPIO_MODER_MODER1; //set PA2 to input
+	GPIOA->MODER &= ~GPIO_MODER_MODER2; //set PA3 to input
+	GPIOA->MODER &= ~GPIO_MODER_MODER3; //set PA3 to input 
 	// enable pull-up resistors
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR12_0; //enable pull-up for PB12
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR13_0; //enable pull-up for B13
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR14_0; //enable pull-up for B14
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR15_0; //enable pull-up for B15
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1; //enable pull-down for PA0
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_1; //enable pull-down for PA1
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_1; //enable pull-down for PA2
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_1; //enable pull-down for PA3
 }
 
 void init_EXTI(void) {
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN; // clock for the system configuration controller
-	SYSCFG->EXTICR[3] |= SYSCFG_EXTICR4_EXTI12_PB; // set interrupt 12 to be sourced from port B for EXTICR4
-	EXTI->IMR |= EXTI_IMR_MR12; // un-mask the interrupt
-	EXTI->RTSR |= EXTI_RTSR_TR12; // enable the rising edge trigger for interrupt 12
+	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA; // set interrupt 12 to be sourced from port B for EXTICR4
+	EXTI->IMR |= EXTI_IMR_MR0; // un-mask the interrupt
+	EXTI->RTSR |= EXTI_RTSR_TR0; // enable the rising edge trigger for interrupt 12
 	
 }
 void init_NVIC(void) {
-	NVIC_EnableIRQ(EXTI4_15_IRQn);
+	NVIC_EnableIRQ(EXTI0_1_IRQn);
+	//NVIC_EnableIRQ(EXTI2_3_IRQn);
 }
