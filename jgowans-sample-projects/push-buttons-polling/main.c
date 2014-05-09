@@ -11,10 +11,10 @@ void main(void)
 	init_push_buttons();
 	
 	for(;;) {
-		if ((GPIOB->IDR & GPIO_IDR_12) == 0) { GPIOB->ODR = 0x03; }
-		else if ((GPIOB->IDR & GPIO_IDR_13) == 0) { GPIOB->ODR = 0x0C; }
-		else if ((GPIOB->IDR & GPIO_IDR_14) == 0) { GPIOB->ODR = 0x30; }
-		else if ((GPIOB->IDR & GPIO_IDR_15) == 0) { GPIOB->ODR = 0xC0; }
+		if ((GPIOA->IDR & GPIO_IDR_0) != 0 ) { GPIOB->ODR = 0x03; }
+		else if ((GPIOA->IDR & GPIO_IDR_1) != 0) { GPIOB->ODR = 0x0C; }
+		else if ((GPIOA->IDR & GPIO_IDR_2) != 0) { GPIOB->ODR = 0x30; }
+		else if ((GPIOA->IDR & GPIO_IDR_3) != 0) { GPIOB->ODR = 0xC0; }
 		else { GPIOB->ODR = 0x00; }
 	}
 	
@@ -33,15 +33,15 @@ void init_leds(void) {
 }
 
 void init_push_buttons(void) {
-	RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable clock for push-buttons
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN; //enable clock for push-buttons
 	// set pins to inputs
-	GPIOB->MODER &= ~GPIO_MODER_MODER12; //set PB12 to input
-	GPIOB->MODER &= ~GPIO_MODER_MODER13; //set PB13 to input
-	GPIOB->MODER &= ~GPIO_MODER_MODER14; //set PB14 to input
-	GPIOB->MODER &= ~GPIO_MODER_MODER15; //set PB15 to input
+	GPIOA->MODER &= ~GPIO_MODER_MODER0; //set PA0 to input
+	GPIOA->MODER &= ~GPIO_MODER_MODER1; //set PA1 to input
+	GPIOA->MODER &= ~GPIO_MODER_MODER2; //set PA2 to input
+	GPIOA->MODER &= ~GPIO_MODER_MODER3; //set PA3 to input
 	// enable pull-up resistors
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR12_0; //enable pull-up for PB12
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR13_0; //enable pull-up for B13
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR14_0; //enable pull-up for B14
-	GPIOB->PUPDR |= GPIO_PUPDR_PUPDR15_0; //enable pull-up for B15
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1; //enable pull-down for PA0
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_1; //enable pull-down for PA1
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_1; //enable pull-down for PA2
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_1; //enable pull-down for PA3
 }
