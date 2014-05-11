@@ -13,10 +13,10 @@ void main(void)
 	GPIOB->ODR |= 0xAA;
 	init_usart();
 	for(;;) {
-		while ( (USART2->ISR & USART_ISR_RXNE) == 0); // while receive IS empty, hang
-		received = USART2->RDR;
+		while ( (USART1->ISR & USART_ISR_RXNE) == 0); // while receive IS empty, hang
+		received = USART1->RDR;
 		GPIOB->ODR = received;
-		USART2->TDR = received+1;
+		USART1->TDR = received+1;
 		
 	}
 }
@@ -29,23 +29,23 @@ void delay(void) {
 
 
 void init_usart(void) {
-	// clock to USART2
-	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+	// clock to USART1
+	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 	// clock to GPIOA
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	// PA2 and PA3 to AF
-	GPIOA->MODER |= GPIO_MODER_MODER2_1;
-	GPIOA->MODER |= GPIO_MODER_MODER3_1;
+	// PA9 and PA10 to AF
+	GPIOA->MODER |= GPIO_MODER_MODER9_1;
+	GPIOA->MODER |= GPIO_MODER_MODER10_1;
 	// remap to correct AF
-	GPIOA->AFR[0] |= (1 << 2*4); // remap pin 2 to AF1
-	GPIOA->AFR[0] |= (1 << 3*4); // remap pin 3 to AF1
+	GPIOA->AFR[1] |= (1 << (1*4)); // remap pin 2 to AF1
+	GPIOA->AFR[1] |= (1 << (2*4)); // remap pin 3 to AF1
 
 	// BRR = fclk / baud = 8e6 / 9600
-	USART2->BRR = 833; 
+	USART1->BRR = 833; 
 	// enable with UE in CR1
-	USART2->CR1 |= USART_CR1_UE;
-	USART2->CR1 |= USART_CR1_RE;
-	USART2->CR1 |= USART_CR1_TE;
+	USART1->CR1 |= USART_CR1_UE;
+	USART1->CR1 |= USART_CR1_RE;
+	USART1->CR1 |= USART_CR1_TE;
 }
 
 void init_leds(void) {

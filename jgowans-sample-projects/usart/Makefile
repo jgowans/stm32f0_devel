@@ -29,5 +29,4 @@ main.s: main.c
 	$(CC) $(CC_FLAGS) main.c
 
 clean:
-# if using linux, replace "del" with "rm"
 	$(RM) main.s main.o main.elf main.bin
