@@ -37,8 +37,8 @@ void init_usart(void) {
 	GPIOA->MODER |= GPIO_MODER_MODER9_1;
 	GPIOA->MODER |= GPIO_MODER_MODER10_1;
 	// remap to correct AF
-	GPIOA->AFR[1] |= (1 << (1*4)); // remap pin 2 to AF1
-	GPIOA->AFR[1] |= (1 << (2*4)); // remap pin 3 to AF1
+	GPIOA->AFR[1] |= (1 << (1*4)); // remap pin 9 to AF1
+	GPIOA->AFR[1] |= (1 << (2*4)); // remap pin 10 to AF1
 
 	// BRR = fclk / baud = 8e6 / 9600
 	USART1->BRR = 833; 
