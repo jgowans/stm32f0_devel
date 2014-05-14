@@ -41,62 +41,76 @@ static uint8_t test_pattern[] = {0xAA, 0x42, 0xF0, 0x01, 0x10};
 void main(void) {
   init_leds();
   init_spi();
-  for (;;) {
-    GPIOB->BSRR |= GPIO_BSRR_BR_12; // pull CS low
-    delay(5);
-    *((uint8_t*)(&SPI2->DR)) = (uint8_t)0xAA;
-    while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
-    uint8_t dummy = SPI2->DR;
-    GPIOB->BSRR |= GPIO_BSRR_BS_12; // pull CS high
-    delay(1000);
-  }
   // write all bytes to EEPROM
   for (uint32_t pos = 0; pos < sizeof(test_pattern); pos++) {
-    //write_to_address(pos, test_pattern[pos]);
+    write_to_address(pos, test_pattern[pos]);
   }
-  // wait a while, brother.
-  for (uint32_t delay = 0; delay < UINT32_MAX; delay++);
-  // read and compare all bytes
   GPIOB->ODR = 0xAA;
   // output 0xAA if correct, else 0x01
   for (uint32_t pos = 0; pos < sizeof(test_pattern); pos++) {
-    //if (read_from_address(pos) != test_pattern[pos]) {
-     // GPIOB->ODR = 0x01;
-    //}
+    uint8_t data_in = read_from_address(pos);
+    if  (data_in != test_pattern[pos]) {
+      GPIOB->ODR = 0x01;
+    }
   }
   for(;;);
 }
 
 void write_to_address(uint16_t address, uint8_t data) {
-  // pull CS low with SPE=1
-  // send write enable instruction
-  SPI2->DR = WREN;
+  uint8_t dummy; // a variable which will be used to pull junk from the DR
+
+  // first, set the Write Enable latch
+  GPIOB->BSRR |= GPIO_BSRR_BR_12; // pull CS low
+  delay(1);
+  *((uint8_t*)(&SPI2->DR)) = WREN;
   while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
-  uint8_t dummy = SPI2->DR;
-  // wait until RXNE
-  // read data from buffer
-  // pull CS high with SPE=0
-  // wait a while??
-  // pull CS low with SPE=1
-  // send write instruction and address
-  // wait until RXNE
-  // read buffer
-  // send data
-  // wait until RXNE
-  // read buffer
-  // pull CS high with SPE=0
-  // read data from RXFIFO until RFLVL == 0
-  // wait 5 ms
+  dummy = SPI2->DR;
+  GPIOB->BSRR |= GPIO_BSRR_BS_12; // pull CS high
+  delay(5000);
+
+  // send the write instruction
+  GPIOB->BSRR |= GPIO_BSRR_BR_12; // pull CS low
+  delay(1);
+  *((uint8_t*)(&SPI2->DR)) = WRITE;
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  // send a 16 bit address
+  *((uint8_t*)(&SPI2->DR)) = (address >> 8); // address MSB
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  *((uint8_t*)(&SPI2->DR)) = (address); // address LSB
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  // send the data
+  *((uint8_t*)(&SPI2->DR)) = data;
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  GPIOB->BSRR |= GPIO_BSRR_BS_12; // pull CS high
+  delay(5000);
 }
 
 uint8_t read_from_address(uint16_t address) {
-  // pull CS low with SPE=1
-  // send write enable instruction
-  // pull CS high with SPE=0
-  //
-  // pull CS low with SPE=1
-  // send write instruction and address
-  // pull CS high with SPE=0
+  uint8_t dummy; // a variable which will be used to pull junk from the DR
+  // send the read instruction
+  GPIOB->BSRR |= GPIO_BSRR_BR_12; // pull CS low
+  delay(1);
+  *((uint8_t*)(&SPI2->DR)) = READ;
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  // send a 16 bit address
+  *((uint8_t*)(&SPI2->DR)) = (address >> 8); // address MSB
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  *((uint8_t*)(&SPI2->DR)) = (address); // address LSB
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  // clock in the data
+  *((uint8_t*)(&SPI2->DR)) = 0x42; // clock out some junk data
+  while ((SPI2->SR & SPI_SR_RXNE) == 0); // hang while RX is empty
+  dummy = SPI2->DR;
+  GPIOB->BSRR |= GPIO_BSRR_BS_12; // pull CS high
+  delay(5000);
+  return dummy;
 }
 
 void init_spi(void) {
