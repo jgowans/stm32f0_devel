@@ -1,0 +1,25 @@
+CC = arm-none-eabi-gcc
+DEVICE_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Device/ST/STM32F0xx/Include
+ARM_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Include
+ARCH_FLAGS=-mthumb -mcpu=cortex-m0
+CFLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} $(ARCH_FLAGS) -Wall -g -nostartfiles 
+
+AS = arm-none-eabi-as
+ASFLAGS = -g
+
+LINKER_FILE = -Tstm32f0_linker.ld
+LDFLAGS = ${LINKER_FILE}
+
+main.elf: main.o startup_stm32f051.o
+	$(CC) $(CFLAGS) -o main.elf main.o startup_stm32f051.o -Wl,$(LDFLAGS) --specs=nosys.specs
+
+startup_stm32f051.o: startup_stm32f051.s
+	echo "testignESRSERSER!!!!!!!!"
+	$(AS) $(ASFLAGS) -o startup_stm32f051.o startup_stm32f051.s
+
+#%.o: %.c
+#	$(CC) $(CFLAGS) -o $@ $<
+
+
+clean:
+	$(RM) *.o *.elf
