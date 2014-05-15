@@ -147,6 +147,6 @@ void init_leds(void) {
 }
 
 void delay(uint32_t delay_in_us) {
-  uint32_t loop_iterations = (delay_in_us);
+  uint32_t loop_iterations = (delay_in_us*10)/17;
   for (volatile int i = 0; i < loop_iterations; i++);
 }
