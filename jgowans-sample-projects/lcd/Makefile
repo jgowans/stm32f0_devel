@@ -7,20 +7,20 @@ LD = arm-none-eabi-ld
 LINKER_FILE = stm32f0_linker.ld
 LDFLAGS = -T ${LINKER_FILE}
 
+AS = arm-none-eabi-as
+
 OBJCOPY = arm-none-eabi-objcopy 
 OBJFLAGS = -O binary
 
 main.bin: main.elf
 	$(OBJCOPY) $(OBJFLAGS) main.elf main.bin
 	
-main.elf: main.o startup_stm32f051.o lcd_STM32F0.o
-	$(LD) $(LDFLAGS) -o main.elf main.o startup_stm32f051.o lcd_STM32F0.o
+main.elf: main.o startup_stm32f051.o lcd_stm32f0.o
+	$(LD) $(LDFLAGS) -o main.elf main.o startup_stm32f051.o lcd_stm32f0.o
 	
 startup_stm32f051.o: startup_stm32f051.s
-	$(CC) $(CFLAGS) -o startup_stm32f051.o startup_stm32f051.s
-
-%.o: %.c
-	$(CC) $(CFLAGS) -o $@ $<
+main.o: main.c lcd_stm32f0.h lcd_stm32f0.c
+lcd_stm32f0.o: lcd_stm32f0.c lcd_stm32f0.h
 
 clean:
 # if using linux, replace "del" with "rm"
