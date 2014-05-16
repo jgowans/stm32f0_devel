@@ -32,7 +32,13 @@ void lcd_string(uint8_t *string_to_print) {
     lcd_put (string_to_print[count], TEXT);
     count++;
   }
-}	  
+}
+void lcd_two_line_write(uint8_t* line1, uint8_t line2) {
+  lcd_command(LCD_CLEAR_DISPLAY);
+  lcd_string(line1);
+  lcd_command(LCD_GOTO_LINE_2);
+  lcd_string(line2);
+}
 
 //============================================================================
 

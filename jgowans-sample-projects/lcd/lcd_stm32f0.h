@@ -16,5 +16,6 @@ enum LcdCommand {
 void lcd_init(void);
 void lcd_command (enum LcdCommand command);
 void lcd_string(uint8_t *string_to_print);
+void lcd_two_line_write(uint8_t* line1, uint8_t line2);
 
 #endif
