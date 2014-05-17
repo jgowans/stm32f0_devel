@@ -1,23 +1,28 @@
 #include "stdint.h"
 #include "stm32f0xx.h"
+#include "eeprom_lib.h"
+#include "temp_sensor_lib.h"
+#include "lcd_stm32f0.h"
 
-void init_leds(void);
-void init_push_buttons(void);
 uint32_t check_for_eeprom_magic(void); // will return 1 if magic found
 void cycle_leds(void);
 void test_potentiometres(void);
 void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
+void lock_crystal(void);
 void serial_loopback(void);
+void init_leds(void);
+void init_push_buttons(void);
+uint32_t push_button_pressed(uint32_t button_number);
 
-uint8_t eeprom_magic = {0xDE, 0xAD, 0xBA, 0xBE};
+uint8_t eeprom_magic[] = {0xDE, 0xAD, 0xBA, 0xBE};
 
 void main(void) {
   init_leds();
   init_push_buttons();
-  init_lcd();
+  lcd_init();
   // flash some sort of welcome message
-  lcd_string("Periphs init'd");
+  lcd_two_line_write("Peripherals", "initialised.");
 
   if (check_for_eeprom_magic() == 0) {
     cycle_leds();
@@ -25,7 +30,8 @@ void main(void) {
     test_temperature_sensor();
     write_magic_to_eeprom();
   }
-  display_eeprom_success_screen();
+  lcd_two_line_write("EEPROM test pass", "Press Sx");
+  for(;;);
   lock_crystal();
   serial_loopback();
   // USART to lookback mode displaying on LEDs 
@@ -33,9 +39,10 @@ void main(void) {
 
 }
 
-void check_for_eeprom_magic(void) {
+uint32_t check_for_eeprom_magic(void) {
   uint32_t pos;
-  // initialise EEPROM
+  return 0;
+  eeprom_init_spi();
 
   for(pos = 0; pos < sizeof(eeprom_magic); pos++) {
     if (eeprom_read_from_address(pos) != eeprom_magic[pos]) {
@@ -43,24 +50,26 @@ void check_for_eeprom_magic(void) {
     }
   }
   return 1;
-
-
 }
 
 void cycle_leds(void) {
-  lcd_command(0x01); // clear screen
-  lcd_string("Factory defaults");
-  lcd_command(0xC0); // goto lower line
-  lcd_string("Press S0");
+  lcd_two_line_write("Factory defaults", "Press S0");
 
   // enable the 200 ms interrupt. 
   // ISR toggles between 0xAA and 0x55, also changes RG PWM.
+  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+  TIM2->DIER |= TIM_DIER_UIE; // enable the update event interrupt
+  TIM2->PSC = 800;
+  TIM2->ARR = 1000; // period should be around 100 ms
+  TIM2->CR1 |= TIM_CR1_CEN; // enable the counter
 
   // fix this to ensure ONLY the desired button is pressed
   while ((GPIOA->IDR & GPIO_IDR_0) == 0);
+  // disable the interrupt
 }
 
 void test_potentiometres(void) {
+  uint8_t pot_value = 0;
   lcd_command(0x01); //clear screen
   lcd_string("Pots being read");
   lcd_command(0xC0); // goto lower line
@@ -68,17 +77,22 @@ void test_potentiometres(void) {
 
   // initialise ATD to POT0 (perhaps a new function?)
 
+  for(;;) {
+    while((ADC1->ISR & ADC_ISR_EOC) == 0);
+    GPIOB->ODR = ADC1->DR;
+  }
+
   lcd_two_line_write("Turn POT0 fully", "counterclockwise");
-  while (ADC_value < 250);
+  while (pot_value < 250);
   lcd_two_line_write("Turn POT0 fully", "clockwise");
-  while (ADC_value > 5);
+  while (pot_value > 5);
 
   // initialise ATD to POT1 (perhaps a new function?)
 
   lcd_two_line_write("Turn POT1 fully", "counterclockwise");
-  while (ADC_value < 250);
+  while (pot_value < 250);
   lcd_two_line_write("Turn POT1 fully", "clockwise");
-  while (ADC_value > 5);
+  while (pot_value > 5);
 
   while(1);
 }
@@ -88,23 +102,38 @@ void test_temperature_sensor(void) {
   lcd_two_line_write("Testing temprtr", "sensor.");
   // initialise IIC
 
-  while( (sensor_value > 30) || (sensor_value < 20) || !(push_button_pressed) ) {
-    sensor_value = // TODO: read value here
+  while( (sensor_value > 30) || (sensor_value < 20) || !(push_button_pressed(0)) ) {
+    sensor_value = 0x00; // TODO: read value here
   }
 
-  while( /* TODO: push button not pressed */ ) {
-    sensor_value = ;// TODO: read value here
+  while( push_button_pressed(0) ) { //TODO: check real button number
+    sensor_value = 0x00;// TODO: read value here
+  }
 }
 
 void write_magic_to_eeprom(void) {
   uint32_t pos;
-  // initialise EEPROM
-
+  // eeprom should already bt init'd by now.
  for(pos = 0; pos < sizeof(eeprom_magic); pos++) {
    eeprom_write_to_address(pos, eeprom_magic[pos]);
  }
-
 }
+
+void lock_crystal(void) {
+  return;
+}
+
+void init_adc(void) {
+  RCC->APB2ENR |= RCC_APB2ENR_ADCEN; //enable clock for ADC
+  RCC->AHBENR |= RCC_AHBENR_GPIOAEN; //enable clock for port
+  GPIOA->MODER |= GPIO_MODER_MODER6; //set PA6 to analogue mode
+  ADC1->CHSELR |= ADC_CHSELR_CHSEL6;// select channel 6
+  ADC1->CFGR1 |= ADC_CFGR1_RES_1; // resolution to 8 bit 
+  ADC1->CR |= ADC_CR_ADEN; // set ADEN=1 in the ADC_CR register
+  while((ADC1->ISR & ADC_ISR_ADRDY) == 0); //wait until ADRDY==1 in ADC_ISR
+}
+
+
 
 void init_leds(void) {
   RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable clock for LEDs
@@ -130,5 +159,9 @@ void init_push_buttons(void) {
   GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_1; //enable pull-down for PA1
   GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_1; //enable pull-down for PA2
   GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_1; //enable pull-down for PA3
+}
+
+uint32_t push_button_pressed(uint32_t button_number) {
+  return 0;
 }
 
