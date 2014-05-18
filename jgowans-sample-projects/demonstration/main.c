@@ -1,3 +1,5 @@
+#define STM32F051
+
 #include "stdint.h"
 #include "stm32f0xx.h"
 #include "eeprom_lib.h"
