@@ -9,6 +9,7 @@
 uint32_t check_for_eeprom_magic(void); // will return 1 if magic found
 void cycle_leds(void);
 void test_potentiometres(void);
+uint8_t display_and_return_pot_value(uint32_t pot_number);
 void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
 void lock_crystal(void);
@@ -31,21 +32,19 @@ void main(void) {
     test_potentiometres();
     test_temperature_sensor();
     write_magic_to_eeprom();
+    lcd_two_line_write("EEPROM written", "Cycle power now")
+    for(;;);
   }
-  lcd_two_line_write("EEPROM test pass", "Press Sx");
-  for(;;);
+  lcd_two_line_write("EEPROM test pass", "Press S0");
+  while (!push_button_pressed(0));
   lock_crystal();
   serial_loopback();
-  // USART to lookback mode displaying on LEDs 
-  // test complete
-
 }
 
 uint32_t check_for_eeprom_magic(void) {
   uint32_t pos;
   return 0;
   eeprom_init_spi();
-
   for(pos = 0; pos < sizeof(eeprom_magic); pos++) {
     if (eeprom_read_from_address(pos) != eeprom_magic[pos]) {
       return 0; 
@@ -56,26 +55,24 @@ uint32_t check_for_eeprom_magic(void) {
 
 void cycle_leds(void) {
   lcd_two_line_write("Factory defaults", "Press S0");
-
-  // enable the 200 ms interrupt. 
+  // enable the 50 ms interrupt. 
   // ISR toggles between 0xAA and 0x55, also changes RG PWM.
-  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-  TIM2->DIER |= TIM_DIER_UIE; // enable the update event interrupt
-  TIM2->PSC = 800;
-  TIM2->ARR = 1000; // period should be around 100 ms
-  TIM2->CR1 |= TIM_CR1_CEN; // enable the counter
+  RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
+  TIM14->PSC = 8000;
+  TIM14->ARR = 50; // period should be (8e6)/(8e3 * 50) = 50 ms.
+  TIM14->DIER |= TIM_DIER_UIE; // enable the update event interrupt
+  TIM14->CR1 |= TIM_CR1_CEN; // enable the counter
+  // enable the interrupt in the NVIC
+  NVIC_EnableIRQ(TIM14_IRQn);
+  while (!push_button_pressed(0));
+  NVIC_DisableIRQ(TIM14_IRQn); 
+  TIM14->CR1 &= ~TIM_CR1_CEN; // disable the counter
 
-  // fix this to ensure ONLY the desired button is pressed
-  while ((GPIOA->IDR & GPIO_IDR_0) == 0);
-  // disable the interrupt
 }
 
 void test_potentiometres(void) {
   uint8_t pot_value = 0;
-  lcd_command(0x01); //clear screen
-  lcd_string("Pots being read");
-  lcd_command(0xC0); // goto lower line
-  lcd_string("Press S1");
+  lcd_string("Initialising ADC");
 
   // initialise ATD to POT0 (perhaps a new function?)
 
@@ -85,29 +82,43 @@ void test_potentiometres(void) {
   }
 
   lcd_two_line_write("Turn POT0 fully", "counterclockwise");
-  while (pot_value < 250);
+  while (display_and_return_pot_value(0) < 250);
   lcd_two_line_write("Turn POT0 fully", "clockwise");
-  while (pot_value > 5);
-
-  // initialise ATD to POT1 (perhaps a new function?)
-
+  while (display_and_return_pot_value(0) > 5);
   lcd_two_line_write("Turn POT1 fully", "counterclockwise");
-  while (pot_value < 250);
+  while (display_and_return_pot_value(1) < 250);
   lcd_two_line_write("Turn POT1 fully", "clockwise");
-  while (pot_value > 5);
+  while (display_and_return_pot_value(1) < 5);
 
-  while(1);
+  lcd_two_line_write("Pot test complete", "Press S1");
+  while(!push_button_pressed(1)) {
+    display_and_return_pot_value(1);
+  }
+}
+
+uint8_t display_and_return_pot_value(uint32_t pot_number) {
+  uint8_t pot_value;
+  // point ATD to the right pot
+  if (pot_number == 0) {
+    ADC1->CHSELR = ADC_CHSELR_CHSEL5;
+  } else {
+    ADC1->CHSELR = ADC_CHSELR_CHSEL6;
+  }
+  ADC1->CR |= ADC_CR_ADSTART; // start a conversion
+  while((ADC1->ISR & ADC_ISR_EOC) == 0); // wait till conversion complete
+  pot_value = ADC1->DR;
+  // write to LEDs
+  GPIOB->ODR = pot_value;
+  return pot_value;
 }
 
 void test_temperature_sensor(void) {
   uint8_t sensor_value = 0;
   lcd_two_line_write("Testing temprtr", "sensor.");
   // initialise IIC
-
   while( (sensor_value > 30) || (sensor_value < 20) || !(push_button_pressed(0)) ) {
     sensor_value = 0x00; // TODO: read value here
   }
-
   while( push_button_pressed(0) ) { //TODO: check real button number
     sensor_value = 0x00;// TODO: read value here
   }
@@ -122,6 +133,9 @@ void write_magic_to_eeprom(void) {
 }
 
 void lock_crystal(void) {
+  lcd_two_line_write("Attempting to", "lock crystal");
+  lcd_two_line_write("Crystal locked.", "Press S1");
+  while (!push_button_pressed(1));
   return;
 }
 
@@ -164,6 +178,12 @@ void init_push_buttons(void) {
 }
 
 uint32_t push_button_pressed(uint32_t button_number) {
-  return 0;
+  // isolate lower 4 bits of GPIOA
+  uint32_t buttons_isolated = GPIOA->IDR & 0b1111;
+  if (buttons_isolated == (1 << button_number)) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
