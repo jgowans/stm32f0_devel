@@ -14,6 +14,7 @@ void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
 void lock_crystal(void);
 void serial_loopback(void);
+void init_adc(void);
 void init_leds(void);
 void init_push_buttons(void);
 uint32_t push_button_pressed(uint32_t button_number);
@@ -32,7 +33,7 @@ void main(void) {
     test_potentiometres();
     test_temperature_sensor();
     write_magic_to_eeprom();
-    lcd_two_line_write("EEPROM written", "Cycle power now")
+    lcd_two_line_write("EEPROM written", "Cycle power now");
     for(;;);
   }
   lcd_two_line_write("EEPROM test pass", "Press S0");
@@ -42,13 +43,14 @@ void main(void) {
 }
 
 uint32_t check_for_eeprom_magic(void) {
+  lcd_two_line_write("Attemping to", "read from EEPROM");
   uint32_t pos;
-  return 0;
   eeprom_init_spi();
   for(pos = 0; pos < sizeof(eeprom_magic); pos++) {
     if (eeprom_read_from_address(pos) != eeprom_magic[pos]) {
       return 0; 
     }
+    eeprom_write_to_address(pos, 0x00); // erase the byte after verifying it
   }
   return 1;
 }
@@ -72,23 +74,18 @@ void cycle_leds(void) {
 
 void test_potentiometres(void) {
   uint8_t pot_value = 0;
-  lcd_string("Initialising ADC");
+  lcd_two_line_write("Initialising ADC", " ");
 
-  // initialise ATD to POT0 (perhaps a new function?)
+  init_adc();
 
-  for(;;) {
-    while((ADC1->ISR & ADC_ISR_EOC) == 0);
-    GPIOB->ODR = ADC1->DR;
-  }
-
-  lcd_two_line_write("Turn POT0 fully", "counterclockwise");
-  while (display_and_return_pot_value(0) < 250);
-  lcd_two_line_write("Turn POT0 fully", "clockwise");
-  while (display_and_return_pot_value(0) > 5);
-  lcd_two_line_write("Turn POT1 fully", "counterclockwise");
-  while (display_and_return_pot_value(1) < 250);
+  //lcd_two_line_write("Turn POT0 fully", "counterclockwise");
+  //while (display_and_return_pot_value(0) < 250);
+  //lcd_two_line_write("Turn POT0 fully", "clockwise");
+  //while (display_and_return_pot_value(0) > 5);
   lcd_two_line_write("Turn POT1 fully", "clockwise");
-  while (display_and_return_pot_value(1) < 5);
+  while (display_and_return_pot_value(1) < 250);
+  lcd_two_line_write("Turn POT1 fully", "counterclockwise");
+  while (display_and_return_pot_value(1) > 5);
 
   lcd_two_line_write("Pot test complete", "Press S1");
   while(!push_button_pressed(1)) {
@@ -116,16 +113,22 @@ void test_temperature_sensor(void) {
   uint8_t sensor_value = 0;
   lcd_two_line_write("Testing temprtr", "sensor.");
   // initialise IIC
-  while( (sensor_value > 30) || (sensor_value < 20) || !(push_button_pressed(0)) ) {
-    sensor_value = 0x00; // TODO: read value here
+  temp_sensor_init_iic();
+  while( (sensor_value > 30) || (sensor_value < 20) ) {
+    sensor_value = temp_sensor_read();
+    GPIOB->ODR = sensor_value;
   }
-  while( push_button_pressed(0) ) { //TODO: check real button number
-    sensor_value = 0x00;// TODO: read value here
+  lcd_two_line_write("Tempratur sensor", "passed. Press S2");
+
+  while( !push_button_pressed(2) ) { 
+    sensor_value = temp_sensor_read();
+    GPIOB->ODR = sensor_value;
   }
 }
 
 void write_magic_to_eeprom(void) {
   uint32_t pos;
+  lcd_two_line_write("Trying to write", "to EEPROM");
   // eeprom should already bt init'd by now.
  for(pos = 0; pos < sizeof(eeprom_magic); pos++) {
    eeprom_write_to_address(pos, eeprom_magic[pos]);
@@ -137,6 +140,11 @@ void lock_crystal(void) {
   lcd_two_line_write("Crystal locked.", "Press S1");
   while (!push_button_pressed(1));
   return;
+}
+
+void serial_loopback(void) {
+  lcd_two_line_write("All tests pass!", "Now in loopback");
+  for(;;);
 }
 
 void init_adc(void) {

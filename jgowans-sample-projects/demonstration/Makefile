@@ -10,7 +10,7 @@ LDFLAGS = -T ${LINKER_FILE}
 OBJCOPY = arm-none-eabi-objcopy 
 OBJFLAGS = -O binary
 
-OBJS = main.o startup_stm32f051.o lcd_stm32f0.o temp_sensor_lib.o eeprom_lib.o
+OBJS = main.o startup_stm32f051.o lcd_stm32f0.o temp_sensor_lib.o eeprom_lib.o interrupts.o
 
 main.bin: main.elf
 	$(OBJCOPY) $(OBJFLAGS) main.elf main.bin
@@ -21,10 +21,11 @@ main.elf: $(OBJS)
 startup_stm32f051.o: startup_stm32f051.s
 	$(CC) $(CFLAGS) -o startup_stm32f051.o startup_stm32f051.s
 
-main.o: main.c temp_sensor_lib.h lcd_stm32f0.h eeprom_lib.h
+main.o: main.c temp_sensor_lib.h temp_sensor_lib.c lcd_stm32f0.h lcd_stm32f0.c eeprom_lib.h eeprom_lib.c
 temp_sensor_lib.o: temp_sensor_lib.c temp_sensor_lib.h
 eeprom_lib.o: eeprom_lib.c eeprom_lib.h
 lcd_stm32f0.o: lcd_stm32f0.c lcd_stm32f0.h
+interrupts.o: interrupts.c
 
 
 clean:
