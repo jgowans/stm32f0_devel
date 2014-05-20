@@ -17,6 +17,7 @@ void serial_loopback(void);
 void init_adc(void);
 void init_leds(void);
 void init_push_buttons(void);
+void init_usart(void);
 uint32_t push_button_pressed(uint32_t button_number);
 
 uint8_t eeprom_magic[] = {0xDE, 0xAD, 0xBA, 0xBE};
@@ -36,8 +37,8 @@ void main(void) {
     lcd_two_line_write("EEPROM written", "Cycle power now");
     for(;;);
   }
-  lcd_two_line_write("EEPROM test pass", "Press S0");
-  while (!push_button_pressed(0));
+  lcd_two_line_write("EEPROM test pass", "Press S3");
+  while (!push_button_pressed(3));
   lock_crystal();
   serial_loopback();
 }
@@ -137,14 +138,23 @@ void write_magic_to_eeprom(void) {
 
 void lock_crystal(void) {
   lcd_two_line_write("Attempting to", "lock crystal");
-  lcd_two_line_write("Crystal locked.", "Press S1");
-  while (!push_button_pressed(1));
+  lcd_two_line_write("Crystal locked.", "Press S0");
+  while (!push_button_pressed(0));
+  // unlock crystal here, or go back to 8MHz
   return;
 }
 
 void serial_loopback(void) {
+  uint8_t received_char;
+  lcd_two_line_write("Attemping to init", "USART loopback");
+  init_usart();
   lcd_two_line_write("All tests pass!", "Now in loopback");
-  for(;;);
+  for(;;) {
+    while ( (USART1->ISR & USART_ISR_RXNE) == 0); // while receive IS empty, hang
+    received_char = USART1->RDR;
+    GPIOB->ODR = received_char;
+    USART1->TDR = received_char + 1;
+  }
 }
 
 void init_adc(void) {
@@ -184,6 +194,27 @@ void init_push_buttons(void) {
   GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_1; //enable pull-down for PA2
   GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_1; //enable pull-down for PA3
 }
+
+void init_usart(void) {
+  // clock to USART1
+  RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+  // clock to GPIOA
+  RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+  // PA9 and PA10 to AF
+  GPIOA->MODER |= GPIO_MODER_MODER9_1;
+  GPIOA->MODER |= GPIO_MODER_MODER10_1;
+  // remap to correct AF
+  GPIOA->AFR[1] |= (1 << (1*4)); // remap pin 9 to AF1
+  GPIOA->AFR[1] |= (1 << (2*4)); // remap pin 10 to AF1
+
+  // BRR = fclk / baud = 8e6 / 9600
+  USART1->BRR = 833;
+  // enable with UE in CR1
+  USART1->CR1 |= USART_CR1_UE;
+  USART1->CR1 |= USART_CR1_RE;
+  USART1->CR1 |= USART_CR1_TE;
+}
+
 
 uint32_t push_button_pressed(uint32_t button_number) {
   // isolate lower 4 bits of GPIOA
