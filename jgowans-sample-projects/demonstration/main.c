@@ -8,7 +8,7 @@
 
 uint32_t check_for_eeprom_magic(void); // will return 1 if magic found
 void cycle_leds(void);
-void test_potentiometres(void);
+void test_potentiometres(void);  // this is a spelling error - I will fix when I have more time. TJM
 uint8_t display_and_return_pot_value(uint32_t pot_number);
 void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
