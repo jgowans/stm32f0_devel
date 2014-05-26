@@ -189,10 +189,10 @@ void init_push_buttons(void) {
   GPIOA->MODER &= ~GPIO_MODER_MODER2; //set PA2 to input
   GPIOA->MODER &= ~GPIO_MODER_MODER3; //set PA3 to input
   // enable pull-up resistors
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1; //enable pull-down for PA0
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_1; //enable pull-down for PA1
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_1; //enable pull-down for PA2
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_1; //enable pull-down for PA3
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_0; //enable pull-up for PA0
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_0; //enable pull-up for PA1
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_0; //enable pull-up for PA2
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_0; //enable pull-up for PA3
 }
 
 void init_usart(void) {
@@ -219,7 +219,8 @@ void init_usart(void) {
 uint32_t push_button_pressed(uint32_t button_number) {
   // isolate lower 4 bits of GPIOA
   uint32_t buttons_isolated = GPIOA->IDR & 0b1111;
-  if (buttons_isolated == (1 << button_number)) {
+  // for a press to be detected, that bit and ONLY that bit must be CLEAR.
+  if (buttons_isolated == ~(1 << button_number)) {
     return 1;
   } else {
     return 0;
