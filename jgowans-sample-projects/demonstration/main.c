@@ -79,10 +79,10 @@ void test_potentiometres(void) {
 
   init_adc();
 
-  //lcd_two_line_write("Turn POT0 fully", "counterclockwise");
-  //while (display_and_return_pot_value(0) < 250);
-  //lcd_two_line_write("Turn POT0 fully", "clockwise");
-  //while (display_and_return_pot_value(0) > 5);
+  lcd_two_line_write("Turn POT0 fully", "clockwise");
+  while (display_and_return_pot_value(0) < 250);
+  lcd_two_line_write("Turn POT0 fully", "counterclockwise");
+  while (display_and_return_pot_value(0) > 5);
   lcd_two_line_write("Turn POT1 fully", "clockwise");
   while (display_and_return_pot_value(1) < 250);
   lcd_two_line_write("Turn POT1 fully", "counterclockwise");
