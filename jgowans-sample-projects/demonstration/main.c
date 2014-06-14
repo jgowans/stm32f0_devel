@@ -220,7 +220,7 @@ uint32_t push_button_pressed(uint32_t button_number) {
   // isolate lower 4 bits of GPIOA
   uint32_t buttons_isolated = GPIOA->IDR & 0b1111;
   // for a press to be detected, that bit and ONLY that bit must be CLEAR.
-  if (buttons_isolated == ~(1 << button_number)) {
+  if (buttons_isolated == (0b1111 & ~(1 << button_number))) {
     return 1;
   } else {
     return 0;
