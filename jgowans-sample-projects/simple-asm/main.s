@@ -5,6 +5,8 @@
 @@@ This program is in the public domain.  See http://pygmy.utoh.org/riscy/cortex/ 
 @@@ for notes about the program and how to assemble, link, and burn to flash.
 
+@@@ This program has not yet been ported to the STM32F0. Work in progress.
+
 
 @@@ Directives
         .thumb                  @ (same as saying '.code 16')
