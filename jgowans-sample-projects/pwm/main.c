@@ -3,20 +3,38 @@
 #include <stdint.h>
 #include "stm32f0xx.h"
 
+// This projects demonstrates PWM on the RG LED
+// Red:   PB10, TIM2_CH3
+// Green: PB11, TIM2_CH4
+// Both run on AF2
+
+void init_timer(void);
+
 void main(void) {
-  RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable clock for LEDs
-  GPIOB->MODER |= GPIO_MODER_MODER0_0; //set PB0 to output
-
-  // set pin to alternate function
-  // map pin to timer
-
-  RCC->APB1ENR |= RCC_APB1ENR_TIM14EN; // clock to the timer
-  TIM14->PSC = 8000;
-  TIM14->ARR = 100; // period should be around 10 ms
-  // capture compare should be around 70% on the one pin
-  // and 95% on the other pin
-  TIM14->CR1 |= TIM_CR1_CEN; // enable the counter
-
+  init_timer();
   for(;;);
 }
 
+void init_timer(void) {
+  RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+  GPIOB->MODER |= GPIO_MODER_MODER10_1; // PB10 = AF
+  GPIOB->MODER |= GPIO_MODER_MODER11_1; // PB11 = AF
+  GPIOB->AFR[1] |= (2 << (4*(10 - 8))); // PB10_AF = AF2 (ie: map to TIM2_CH3)
+  GPIOB->AFR[1] |= (2 << (4*(11 - 8))); // PB11_AF = AF2 (ie: map to TIM2_CH4)
+
+  TIM2->ARR = 8000;  // f = 1 KHz
+  // specify PWM mode: OCxM bits in CCMRx. We want mode 1
+  TIM2->CCMR2 |= (TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1); // PWM Mode 1
+  TIM2->CCMR2 |= (TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1); // PWM Mode 1 
+  // set PWM percantages
+  TIM2->CCR3 = 20 * 80; // Red = 20%
+  TIM2->CCR4 = 90 * 80; // Green = 90%
+
+  // enable the OC channels
+  TIM2->CCER |= TIM_CCER_CC3E;
+  TIM2->CCER |= TIM_CCER_CC4E;
+
+  TIM2->CR1 |= TIM_CR1_CEN; // counter enable
+}
