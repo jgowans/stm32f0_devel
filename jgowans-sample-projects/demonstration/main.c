@@ -9,7 +9,7 @@
 uint32_t check_for_eeprom_magic(void); // will return 1 if magic found
 void cycle_leds(void);
 void test_potentiometres(void);  // this is a spelling error - I will fix when I have more time. TJM
-uint8_t display_and_return_pot_value(uint32_t pot_number);
+uint8_t get_pot_value(uint32_t pot_number);
 void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
 void lock_crystal(void);
@@ -80,21 +80,21 @@ void test_potentiometres(void) {
   init_adc();
 
   lcd_two_line_write("Turn POT0 fully", "clockwise");
-  while (display_and_return_pot_value(0) < 250);
+  while ((GPIOB->ODR = get_pot_value(0)) < 250);
   lcd_two_line_write("Turn POT0 fully", "counterclockwise");
-  while (display_and_return_pot_value(0) > 5);
+  while ((GPIOB->ODR = get_pot_value(0)) > 5);
   lcd_two_line_write("Turn POT1 fully", "clockwise");
-  while (display_and_return_pot_value(1) < 250);
+  while ((GPIOB->ODR = get_pot_value(1)) < 250);
   lcd_two_line_write("Turn POT1 fully", "counterclockwise");
-  while (display_and_return_pot_value(1) > 5);
+  while ((GPIOB->ODR = get_pot_value(1)) > 5);
 
   lcd_two_line_write("Pot test complete", "Press S1");
   while(!push_button_pressed(1)) {
-    display_and_return_pot_value(1);
+    GPIOB->ODR = get_pot_value(1);
   }
 }
 
-uint8_t display_and_return_pot_value(uint32_t pot_number) {
+uint8_t get_pot_value(uint32_t pot_number) {
   uint8_t pot_value;
   // point ATD to the right pot
   if (pot_number == 0) {
@@ -104,10 +104,7 @@ uint8_t display_and_return_pot_value(uint32_t pot_number) {
   }
   ADC1->CR |= ADC_CR_ADSTART; // start a conversion
   while((ADC1->ISR & ADC_ISR_EOC) == 0); // wait till conversion complete
-  pot_value = ADC1->DR;
-  // write to LEDs
-  GPIOB->ODR = pot_value;
-  return pot_value;
+  return (uint8_t)ADC1->DR;
 }
 
 void test_temperature_sensor(void) {
