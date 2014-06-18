@@ -10,6 +10,7 @@ uint32_t check_for_eeprom_magic(void); // will return 1 if magic found
 void cycle_leds(void);
 void test_potentiometres(void);  // this is a spelling error - I will fix when I have more time. TJM
 uint8_t get_pot_value(uint32_t pot_number);
+void test_RG_LED(void);
 void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
 void lock_crystal(void);
@@ -32,6 +33,7 @@ void main(void) {
   if (check_for_eeprom_magic() == 0) {
     cycle_leds();
     test_potentiometres();
+    test_RG_LED();
     test_temperature_sensor();
     write_magic_to_eeprom();
     lcd_two_line_write("EEPROM written", "Cycle power now");
@@ -107,6 +109,41 @@ uint8_t get_pot_value(uint32_t pot_number) {
   return (uint8_t)ADC1->DR;
 }
 
+void test_RG_LED(void) {
+  // initialise the timer to generate PWM
+  RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+  GPIOB->MODER |= GPIO_MODER_MODER10_1; // PB10 = AF
+  GPIOB->MODER |= GPIO_MODER_MODER11_1; // PB11 = AF
+  GPIOB->AFR[1] |= (2 << (4*(10 - 8))); // PB10_AF = AF2 (ie: map to TIM2_CH3)
+  GPIOB->AFR[1] |= (2 << (4*(11 - 8))); // PB11_AF = AF2 (ie: map to TIM2_CH4)
+
+  TIM2->ARR = 255;
+  // specify PWM mode: OCxM bits in CCMRx. We want mode 1
+  TIM2->CCMR2 |= (TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1); // PWM Mode 1
+  TIM2->CCMR2 |= (TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1); // PWM Mode 1 
+
+  // enable the OC channels
+  TIM2->CCER |= TIM_CCER_CC3E;
+  TIM2->CCER |= TIM_CCER_CC4E;
+
+  TIM2->CR1 |= TIM_CR1_CEN; // counter enable
+
+  lcd_two_line_write("Testing RG LED", "Press S2");
+
+  while(!push_button_pressed(2)) {
+    TIM2->CCR3 = get_pot_value(0);
+    TIM2->CCR4 = get_pot_value(1);
+  }
+
+  // disable the timer and pins
+  TIM2->CR1 &= ~TIM_CR1_CEN;
+  GPIOB->MODER &= ~GPIO_MODER_MODER10;
+  GPIOB->MODER &= ~GPIO_MODER_MODER11;
+
+}
+
 void test_temperature_sensor(void) {
   uint8_t sensor_value = 0;
   lcd_two_line_write("Testing temprtr", "sensor.");
@@ -118,7 +155,7 @@ void test_temperature_sensor(void) {
   }
   lcd_two_line_write("Tempratur sensor", "passed. Press S2");
 
-  while( !push_button_pressed(2) ) { 
+  while( !push_button_pressed(3) ) { 
     sensor_value = temp_sensor_read();
     GPIOB->ODR = sensor_value;
   }
