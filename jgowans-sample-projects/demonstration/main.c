@@ -39,8 +39,8 @@ void main(void) {
     lcd_two_line_write("EEPROM written", "Cycle power now");
     for(;;);
   }
-  lcd_two_line_write("EEPROM test pass", "Press S3");
-  while (!push_button_pressed(3));
+  lcd_two_line_write("EEPROM test pass", "Press S0");
+  while (!push_button_pressed(0));
   lock_crystal();
   serial_loopback();
 }
@@ -81,14 +81,14 @@ void test_potentiometres(void) {
 
   init_adc();
 
-  lcd_two_line_write("Turn POT0 fully", "clockwise");
-  while ((GPIOB->ODR = get_pot_value(0)) < 250);
   lcd_two_line_write("Turn POT0 fully", "counterclockwise");
   while ((GPIOB->ODR = get_pot_value(0)) > 5);
-  lcd_two_line_write("Turn POT1 fully", "clockwise");
-  while ((GPIOB->ODR = get_pot_value(1)) < 250);
+  lcd_two_line_write("Turn POT0 fully", "clockwise");
+  while ((GPIOB->ODR = get_pot_value(0)) < 250);
   lcd_two_line_write("Turn POT1 fully", "counterclockwise");
   while ((GPIOB->ODR = get_pot_value(1)) > 5);
+  lcd_two_line_write("Turn POT1 fully", "clockwise");
+  while ((GPIOB->ODR = get_pot_value(1)) < 250);
 
   lcd_two_line_write("Pot test complete", "Press S1");
   while(!push_button_pressed(1)) {
@@ -153,7 +153,7 @@ void test_temperature_sensor(void) {
     sensor_value = temp_sensor_read();
     GPIOB->ODR = sensor_value;
   }
-  lcd_two_line_write("Tempratur sensor", "passed. Press S2");
+  lcd_two_line_write("Tempratur sensor", "passed. Press S3");
 
   while( !push_button_pressed(3) ) { 
     sensor_value = temp_sensor_read();
@@ -172,8 +172,9 @@ void write_magic_to_eeprom(void) {
 
 void lock_crystal(void) {
   lcd_two_line_write("Attempting to", "lock crystal");
-  lcd_two_line_write("Crystal locked.", "Press S0");
-  while (!push_button_pressed(0));
+  lcd_two_line_write("Crystal locked.", "Press S1");
+  // lock crystal here
+  while (!push_button_pressed(1));
   // unlock crystal here, or go back to 8MHz
   return;
 }
