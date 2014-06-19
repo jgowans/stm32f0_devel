@@ -7,8 +7,7 @@ vectors:
 
 _start:
         @@ Enable the Port B peripheral clock by setting bit 17 of RCC->AHBENR
-        @ldr r0, = #0b00000000000001000000000000000000
-        @ldr r0, =#0x00040000
+        ldr r0, = #0b00000000000001000000000000000000
         ldr r1, = #0x40021014    @ address of AHBENR
         str r0, [r1]             @ write the desired value to the address of AHBENR
         
