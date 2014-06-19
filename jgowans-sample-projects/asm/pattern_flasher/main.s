@@ -9,14 +9,15 @@
 @@@ Directives
         .thumb                  @ (same as saying '.code 16')
         .syntax unified
+        .global _start
 
-@@@ Equates
-		.equ GPIOB_MODER,   0x48000400
+@@@ Register definitions
+        .equ GPIOB_MODER, 0x48000400
         .equ GPIOB_ODR,   0x48000414
         .equ RCC_AHBENR,  0x40021014
         .equ GPIOB_CLKEN, 0x00040000
+@@@ Misc variables
         .equ STACKINIT,   0x20000100
-        
         .equ LEDDELAY,    1000000
         
 .section .text
@@ -57,15 +58,15 @@ _start:
 loop:
         str r2, [r6]           @ turn on LEDs
         ldr r1, = LEDDELAY
-		bl delay
+        bl delay
         str r3, [r6]           @ turn off LEDs
-		ldr r1, = LEDDELAY
-		bl delay
-		b loop
+        ldr r1, = LEDDELAY
+        bl delay
+        b loop
 delay:
         subs r1, 1
         bne delay
-		bx lr
+        bx lr
 
 _dummy:                        @ if any int gets triggered, just hang in a loop
 _nmi_handler:
@@ -76,4 +77,4 @@ _usage_fault:
         adds r0, #1
         adds r1, #1
         b _dummy 
-		
+
