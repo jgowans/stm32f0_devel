@@ -207,8 +207,9 @@ void init_usart(void) {
   GPIOA->AFR[1] |= (1 << (1*4)); // remap pin 9 to AF1
   GPIOA->AFR[1] |= (1 << (2*4)); // remap pin 10 to AF1
 
-  // BRR = fclk / baud = 8e6 / 9600
-  USART1->BRR = 833;
+  // BRR = fclk / baud = fclk / 115200
+  SystemCoreClockUpdate();
+  USART1->BRR = SystemCoreClock/115200;
   // enable with UE in CR1
   USART1->CR1 |= USART_CR1_UE;
   USART1->CR1 |= USART_CR1_RE;
