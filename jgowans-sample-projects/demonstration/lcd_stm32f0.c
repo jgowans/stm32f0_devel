@@ -11,7 +11,7 @@ LCD_D7 = PB11
 */
 
 #include "lcd_stm32f0.h"
-#define delay_cnt 0x1FF
+static uint32_t delay_cnt;
 
 enum TypeOfCharacter {
   COMMAND = 0,
@@ -45,6 +45,11 @@ void lcd_init () {
   /*This function sets up the port lines for the LCD and initializes
   the LCD module for use.*/
   uint32_t count;
+
+  // calculate our delay loop length dependant on system clock frequency
+  SystemCoreClockUpdate();
+  delay_cnt = SystemCoreClock/15000;
+
   for (count=0;count<200;count++) delay(); //allow the LCD some power up time
   // set the relevant pins to outputs
   RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
