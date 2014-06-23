@@ -17,7 +17,7 @@ OBJS = \
        lcd_stm32f0.o \
 
 main.elf: $(OBJS)
-	$(CC) $(LDFLAGS) -o main.elf $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o main.elf $(OBJS)
 	
 main.o: main.c lcd_stm32f0.h lcd_stm32f0.c 
 startup_stm32f051.o: startup_stm32f051.s

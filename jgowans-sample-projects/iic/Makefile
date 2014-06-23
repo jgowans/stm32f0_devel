@@ -16,7 +16,7 @@ OBJS = \
        system_stm32f0xx.o \
 
 main.elf: $(OBJS)
-	$(CC) $(LDFLAGS) -o main.elf $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o main.elf $(OBJS)
 	
 main.o: main.c
 startup_stm32f051.o: startup_stm32f051.s

@@ -20,7 +20,7 @@ OBJS = \
        interrupts.o
 
 main.elf: $(OBJS)
-	$(CC) $(LDFLAGS) -o main.elf $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o main.elf $(OBJS)
 	
 main.o: main.c temp_sensor_lib.h temp_sensor_lib.c lcd_stm32f0.h lcd_stm32f0.c eeprom_lib.h eeprom_lib.c
 startup_stm32f051.o: startup_stm32f051.s
