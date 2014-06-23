@@ -4,6 +4,7 @@ ARM_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Include
 CFLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -mcpu=cortex-m0 -mthumb -g -std=c99
 
 AS = arm-none-eabi-as
+ASFLAGS = -mcpu=cortex-m0 -mthumb -g
 
 LD = arm-none-eabi-ld
 LINKER_FILE = stm32f0_linker.ld
