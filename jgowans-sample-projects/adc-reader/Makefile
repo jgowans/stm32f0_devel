@@ -1,33 +1,25 @@
 CC = arm-none-eabi-gcc
 DEVICE_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Device/ST/STM32F0xx/Include
-ARM_INCLUDES = -I ../..//STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Include
-CC_FLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -mcpu=cortex-m0 -mthumb -S -g
+ARM_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Include
+CFLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -mcpu=cortex-m0 -mthumb -g -std=c99
 
 AS = arm-none-eabi-as
-AS_FLAGS = -g
 
 LD = arm-none-eabi-ld
-LINKER_FILE = -T stm32f0_linker.ld
-LD_FLAGS = ${LINKER_FILE}
+LINKER_FILE = stm32f0_linker.ld
+LDFLAGS = -T $(LINKER_FILE) -nostartfiles
 
-OBJCOPY = arm-none-eabi-objcopy 
-OBJ_FLAGS = -O binary
+OBJS = \
+       main.o \
+       startup_stm32f051.o \
+       system_stm32f0xx.o \
 
-main.bin: main.elf
-	$(OBJCOPY) $(OBJ_FLAGS) main.elf main.bin
+main.elf: $(OBJS)
+	$(CC) $(LDFLAGS) -o main.elf $(OBJS)
 	
-main.elf: main.o startup_stm32f051.o
-	$(LD) $(LD_FLAGS) -o main.elf main.o startup_stm32f051.o
-
-main.o: main.s
-	$(AS) $(AS_FLAGS) -o main.o main.s
-	
+main.o: main.c
 startup_stm32f051.o: startup_stm32f051.s
-	$(AS) $(AS_FLAGS) -o startup_stm32f051.o startup_stm32f051.s
-		
-main.s: main.c
-	$(CC) $(CC_FLAGS) main.c
+system_stm32f0xx.o: system_stm32f0xx.c
 
 clean:
-# if using linux, replace "del" with "rm"
-	$(RM) main.s main.o main.elf main.bin
+	$(RM) *.o *.elf *.bin
