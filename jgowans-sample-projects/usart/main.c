@@ -8,8 +8,7 @@ void init_usart(void);
 void delay(void);
 void init_leds(void);
 
-void main(void)
-{
+void main(void) {
   unsigned char received = 'c';
   init_leds();
   GPIOB->ODR |= 0xAA;
@@ -40,7 +39,6 @@ void init_usart(void) {
   // remap to correct AF
   GPIOA->AFR[1] |= (1 << (1*4)); // remap pin 9 to AF1
   GPIOA->AFR[1] |= (1 << (2*4)); // remap pin 10 to AF1
-
   // BRR = fclk / baud = fclk / 115200
   SystemCoreClockUpdate();
   USART1->BRR = SystemCoreClock/115200; 

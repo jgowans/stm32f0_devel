@@ -9,7 +9,8 @@
 uint32_t check_for_eeprom_magic(void); // will return 1 if magic found
 void cycle_leds(void);
 void test_potentiometres(void);  // this is a spelling error - I will fix when I have more time. TJM
-uint8_t display_and_return_pot_value(uint32_t pot_number);
+uint8_t get_pot_value(uint32_t pot_number);
+void test_RG_LED(void);
 void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
 void lock_crystal(void);
@@ -32,13 +33,14 @@ void main(void) {
   if (check_for_eeprom_magic() == 0) {
     cycle_leds();
     test_potentiometres();
+    test_RG_LED();
     test_temperature_sensor();
     write_magic_to_eeprom();
     lcd_two_line_write("EEPROM written", "Cycle power now");
     for(;;);
   }
-  lcd_two_line_write("EEPROM test pass", "Press S3");
-  while (!push_button_pressed(3));
+  lcd_two_line_write("EEPROM test pass", "Press S0");
+  while (!push_button_pressed(0));
   lock_crystal();
   serial_loopback();
 }
@@ -79,22 +81,22 @@ void test_potentiometres(void) {
 
   init_adc();
 
-  //lcd_two_line_write("Turn POT0 fully", "counterclockwise");
-  //while (display_and_return_pot_value(0) < 250);
-  //lcd_two_line_write("Turn POT0 fully", "clockwise");
-  //while (display_and_return_pot_value(0) > 5);
-  lcd_two_line_write("Turn POT1 fully", "clockwise");
-  while (display_and_return_pot_value(1) < 250);
+  lcd_two_line_write("Turn POT0 fully", "counterclockwise");
+  while ((GPIOB->ODR = get_pot_value(0)) > 5);
+  lcd_two_line_write("Turn POT0 fully", "clockwise");
+  while ((GPIOB->ODR = get_pot_value(0)) < 250);
   lcd_two_line_write("Turn POT1 fully", "counterclockwise");
-  while (display_and_return_pot_value(1) > 5);
+  while ((GPIOB->ODR = get_pot_value(1)) > 5);
+  lcd_two_line_write("Turn POT1 fully", "clockwise");
+  while ((GPIOB->ODR = get_pot_value(1)) < 250);
 
   lcd_two_line_write("Pot test complete", "Press S1");
   while(!push_button_pressed(1)) {
-    display_and_return_pot_value(1);
+    GPIOB->ODR = get_pot_value(1);
   }
 }
 
-uint8_t display_and_return_pot_value(uint32_t pot_number) {
+uint8_t get_pot_value(uint32_t pot_number) {
   uint8_t pot_value;
   // point ATD to the right pot
   if (pot_number == 0) {
@@ -104,10 +106,42 @@ uint8_t display_and_return_pot_value(uint32_t pot_number) {
   }
   ADC1->CR |= ADC_CR_ADSTART; // start a conversion
   while((ADC1->ISR & ADC_ISR_EOC) == 0); // wait till conversion complete
-  pot_value = ADC1->DR;
-  // write to LEDs
-  GPIOB->ODR = pot_value;
-  return pot_value;
+  return (uint8_t)ADC1->DR;
+}
+
+void test_RG_LED(void) {
+  // initialise the timer to generate PWM
+  RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+  GPIOB->MODER |= GPIO_MODER_MODER10_1; // PB10 = AF
+  GPIOB->MODER |= GPIO_MODER_MODER11_1; // PB11 = AF
+  GPIOB->AFR[1] |= (2 << (4*(10 - 8))); // PB10_AF = AF2 (ie: map to TIM2_CH3)
+  GPIOB->AFR[1] |= (2 << (4*(11 - 8))); // PB11_AF = AF2 (ie: map to TIM2_CH4)
+
+  TIM2->ARR = 255;
+  // specify PWM mode: OCxM bits in CCMRx. We want mode 1
+  TIM2->CCMR2 |= (TIM_CCMR2_OC3M_2 | TIM_CCMR2_OC3M_1); // PWM Mode 1
+  TIM2->CCMR2 |= (TIM_CCMR2_OC4M_2 | TIM_CCMR2_OC4M_1); // PWM Mode 1 
+
+  // enable the OC channels
+  TIM2->CCER |= TIM_CCER_CC3E;
+  TIM2->CCER |= TIM_CCER_CC4E;
+
+  TIM2->CR1 |= TIM_CR1_CEN; // counter enable
+
+  lcd_two_line_write("Testing RG LED", "Press S2");
+
+  while(!push_button_pressed(2)) {
+    TIM2->CCR3 = get_pot_value(0);
+    TIM2->CCR4 = get_pot_value(1);
+  }
+
+  // disable the timer and pins
+  TIM2->CR1 &= ~TIM_CR1_CEN;
+  GPIOB->MODER &= ~GPIO_MODER_MODER10;
+  GPIOB->MODER &= ~GPIO_MODER_MODER11;
+
 }
 
 void test_temperature_sensor(void) {
@@ -119,9 +153,9 @@ void test_temperature_sensor(void) {
     sensor_value = temp_sensor_read();
     GPIOB->ODR = sensor_value;
   }
-  lcd_two_line_write("Tempratur sensor", "passed. Press S2");
+  lcd_two_line_write("Tempratur sensor", "passed. Press S3");
 
-  while( !push_button_pressed(2) ) { 
+  while( !push_button_pressed(3) ) { 
     sensor_value = temp_sensor_read();
     GPIOB->ODR = sensor_value;
   }
@@ -138,8 +172,9 @@ void write_magic_to_eeprom(void) {
 
 void lock_crystal(void) {
   lcd_two_line_write("Attempting to", "lock crystal");
-  lcd_two_line_write("Crystal locked.", "Press S0");
-  while (!push_button_pressed(0));
+  lcd_two_line_write("Crystal locked.", "Press S1");
+  // lock crystal here
+  while (!push_button_pressed(1));
   // unlock crystal here, or go back to 8MHz
   return;
 }
@@ -189,10 +224,10 @@ void init_push_buttons(void) {
   GPIOA->MODER &= ~GPIO_MODER_MODER2; //set PA2 to input
   GPIOA->MODER &= ~GPIO_MODER_MODER3; //set PA3 to input
   // enable pull-up resistors
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1; //enable pull-down for PA0
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_1; //enable pull-down for PA1
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_1; //enable pull-down for PA2
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_1; //enable pull-down for PA3
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_0; //enable pull-up for PA0
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_0; //enable pull-up for PA1
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_0; //enable pull-up for PA2
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_0; //enable pull-up for PA3
 }
 
 void init_usart(void) {
@@ -220,7 +255,8 @@ void init_usart(void) {
 uint32_t push_button_pressed(uint32_t button_number) {
   // isolate lower 4 bits of GPIOA
   uint32_t buttons_isolated = GPIOA->IDR & 0b1111;
-  if (buttons_isolated == (1 << button_number)) {
+  // for a press to be detected, that bit and ONLY that bit must be CLEAR.
+  if (buttons_isolated == (0b1111 & ~(1 << button_number))) {
     return 1;
   } else {
     return 0;
