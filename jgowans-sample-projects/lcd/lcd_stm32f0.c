@@ -11,7 +11,6 @@ LCD_D7 = PA15
 */
 
 #include "lcd_stm32f0.h"
-static uint32_t delay_cnt;
 
 enum TypeOfCharacter {
   COMMAND = 0,
@@ -19,9 +18,9 @@ enum TypeOfCharacter {
 };
 
 
-void delay (void);
-void pulse_strobe (void);
-void lcd_put (uint8_t character, enum TypeOfCharacter ch_type);
+static void delay (uint32_t microseconds);
+static void pulse_strobe (void);
+static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type);
 
 //============================================================================
 
@@ -46,11 +45,7 @@ void lcd_init () {
   the LCD module for use.*/
   uint32_t count;
 
-  // calculate our delay loop length dependant on system clock frequency
-  SystemCoreClockUpdate();
-  delay_cnt = SystemCoreClock/15000;
-
-  for (count=0;count<200;count++) delay(); //allow the LCD some power up time
+  delay(30000); //allow the LCD 30 ms power up time
   // set the relevant pins to outputs
   RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
   RCC->AHBENR |= RCC_AHBENR_GPIOBEN; 
@@ -61,7 +56,6 @@ void lcd_init () {
   GPIOB->MODER |= GPIO_MODER_MODER9_0;
   GPIOA->MODER |= GPIO_MODER_MODER12_0;
   GPIOA->MODER |= GPIO_MODER_MODER15_0;
-  for (count=0;count<200;count++) delay(); //allow the LCD some power up time
 
   lcd_command(LCD_EIGHT_BIT_MODE); // 0x33
   lcd_command(LCD_EIGHT_BIT_MODE); // 0x33
@@ -77,11 +71,12 @@ void lcd_command (enum LcdCommand command) {
   //This function sends a command to the LCD. 
   //Care is taken not to interfere with the other lines on the port.
   lcd_put((uint8_t)command, COMMAND);
+  delay(3000); // 3 ms (double the delay we should need for any command)
 }
 
 //============================================================================
 
-void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
+static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
   //Puts a single character on the LCD at the next position on the screen.
   //The character to be printed is in the input parameter. For numbers, letters 
   //and other common characters the ASCII code will produce correct display.
@@ -139,22 +134,24 @@ void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
 
 //============================================================================
 
-void delay (void) {
-  //a delay used by the LCD functions.
-  volatile uint32_t count;
-  for (count=0;count<delay_cnt;count++);
+
+static void delay(uint32_t microseconds) {
+  /* Hangs for specified number of microseconds. */
+  volatile uint32_t counter = 0;
+  microseconds *= 3;
+  for(; counter<microseconds; counter++) {
+    __asm("nop");
+    __asm("nop");
+  }
 }
 
-//============================================================================
-
-void pulse_strobe (void) {
+static void pulse_strobe (void) {
   //Pulse the strobe line of the LCD to indicate that data is ready.
-  delay ();
-  GPIOC->BSRR |= GPIO_BSRR_BS_15;// pull E (PC15) high
-  delay ();
+  delay (20);
   GPIOC->BSRR |= GPIO_BSRR_BR_15;// pull E (PC15) low
-  delay ();
+  delay (20);
   GPIOC->BSRR |= GPIO_BSRR_BS_15;// pull E (PC15) high
+  delay (20);
 }                     
 
 //============================================================================
