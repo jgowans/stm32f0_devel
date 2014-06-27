@@ -1,27 +1,28 @@
 CC = arm-none-eabi-gcc
 DEVICE_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Device/ST/STM32F0xx/Include
 ARM_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Include
-CFLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -mcpu=cortex-m0 -mthumb -g -c
+CFLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -mcpu=cortex-m0 -mthumb -g -std=c99
+
+AS = arm-none-eabi-as
+ASFLAGS = -mcpu=cortex-m0 -mthumb -g
 
 LD = arm-none-eabi-ld
 LINKER_FILE = stm32f0_linker.ld
-LDFLAGS = -T ${LINKER_FILE}
+LDFLAGS = -T $(LINKER_FILE) -nostartfiles
 
-AS = arm-none-eabi-as
+OBJS = \
+       main.o \
+       startup_stm32f051.o \
+       system_stm32f0xx.o \
+       lcd_stm32f0.o \
 
-OBJCOPY = arm-none-eabi-objcopy 
-OBJFLAGS = -O binary
-
-main.bin: main.elf
-	$(OBJCOPY) $(OBJFLAGS) main.elf main.bin
+main.elf: $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o main.elf $(OBJS)
 	
-main.elf: main.o startup_stm32f051.o lcd_stm32f0.o
-	$(LD) $(LDFLAGS) -o main.elf main.o startup_stm32f051.o lcd_stm32f0.o
-	
+main.o: main.c lcd_stm32f0.h lcd_stm32f0.c 
 startup_stm32f051.o: startup_stm32f051.s
-main.o: main.c lcd_stm32f0.h lcd_stm32f0.c
 lcd_stm32f0.o: lcd_stm32f0.c lcd_stm32f0.h
+system_stm32f0xx.o: system_stm32f0xx.c
 
 clean:
-# if using linux, replace "del" with "rm"
 	$(RM) *.o *.elf *.bin

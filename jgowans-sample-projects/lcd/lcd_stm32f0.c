@@ -6,13 +6,11 @@ LCD_RS = PC14
 LCD_E = PC15
 LCD_D4 = PB8
 LCD_D5 = PB9
-LCD_D6 = PB10
-LCD_D7 = PB11
+LCD_D6 = PA12
+LCD_D7 = PA15
 */
 
-#include "stm32f0xx.h" /* include peripheral declarations */
 #include "lcd_stm32f0.h"
-#define delay_cnt 0x1FF
 
 enum TypeOfCharacter {
   COMMAND = 0,
@@ -20,9 +18,9 @@ enum TypeOfCharacter {
 };
 
 
-void delay (void);
-void pulse_strobe (void);
-void lcd_put (uint8_t character, enum TypeOfCharacter ch_type);
+static void delay (uint32_t microseconds);
+static void pulse_strobe (void);
+static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type);
 
 //============================================================================
 
@@ -33,7 +31,7 @@ void lcd_string(uint8_t *string_to_print) {
     count++;
   }
 }
-void lcd_two_line_write(uint8_t* line1, uint8_t line2) {
+void lcd_two_line_write(uint8_t* line1, uint8_t* line2) {
   lcd_command(LCD_CLEAR_DISPLAY);
   lcd_string(line1);
   lcd_command(LCD_GOTO_LINE_2);
@@ -46,17 +44,18 @@ void lcd_init () {
   /*This function sets up the port lines for the LCD and initializes
   the LCD module for use.*/
   uint32_t count;
-  for (count=0;count<200;count++) delay(); //allow the LCD some power up time
+
+  delay(30000); //allow the LCD 30 ms power up time
   // set the relevant pins to outputs
   RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
   RCC->AHBENR |= RCC_AHBENR_GPIOBEN; 
+  RCC->AHBENR |= RCC_AHBENR_GPIOAEN; 
   GPIOC->MODER |= GPIO_MODER_MODER14_0;
   GPIOC->MODER |= GPIO_MODER_MODER15_0;
   GPIOB->MODER |= GPIO_MODER_MODER8_0;
   GPIOB->MODER |= GPIO_MODER_MODER9_0;
-  GPIOB->MODER |= GPIO_MODER_MODER10_0;
-  GPIOB->MODER |= GPIO_MODER_MODER11_0;
-  for (count=0;count<200;count++) delay(); //allow the LCD some power up time
+  GPIOA->MODER |= GPIO_MODER_MODER12_0;
+  GPIOA->MODER |= GPIO_MODER_MODER15_0;
 
   lcd_command(LCD_EIGHT_BIT_MODE); // 0x33
   lcd_command(LCD_EIGHT_BIT_MODE); // 0x33
@@ -72,11 +71,12 @@ void lcd_command (enum LcdCommand command) {
   //This function sends a command to the LCD. 
   //Care is taken not to interfere with the other lines on the port.
   lcd_put((uint8_t)command, COMMAND);
+  delay(3000); // 3 ms (double the delay we should need for any command)
 }
 
 //============================================================================
 
-void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
+static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
   //Puts a single character on the LCD at the next position on the screen.
   //The character to be printed is in the input parameter. For numbers, letters 
   //and other common characters the ASCII code will produce correct display.
@@ -86,36 +86,72 @@ void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
   } else if (ch_type == COMMAND) {
     GPIOC->BSRR |= GPIO_BSRR_BR_14;// pull RS (PC14) low
   }
-  // clear data lines
-  GPIOB->BSRR |= (GPIO_BSRR_BR_8 | GPIO_BSRR_BR_9 | GPIO_BSRR_BR_10 | GPIO_BSRR_BR_11);
   // upper nibble to data lines
-  GPIOB->BSRR |= (character & 0xF0) << 4; // shift from bit[7:0] to bit[11:4]
+  if ((character & 0x80) != 0) {
+    GPIOA->BSRR |= GPIO_BSRR_BS_15;
+  } else {
+    GPIOA->BSRR |= GPIO_BSRR_BR_15;
+  }
+  if ((character & 0x40) != 0) {
+    GPIOA->BSRR |= GPIO_BSRR_BS_12;
+  } else {
+    GPIOA->BSRR |= GPIO_BSRR_BR_12;
+  }
+  if ((character & 0x20) != 0) {
+    GPIOB->BSRR |= GPIO_BSRR_BS_9;
+  } else {
+    GPIOB->BSRR |= GPIO_BSRR_BR_9;
+  } 
+  if ((character & 0x10) != 0) {
+    GPIOB->BSRR |= GPIO_BSRR_BS_8;
+  } else {
+    GPIOB->BSRR |= GPIO_BSRR_BR_8;
+  }
   pulse_strobe ();
-  // clear data lines
-  GPIOB->BSRR |= (GPIO_BSRR_BR_8 | GPIO_BSRR_BR_9 | GPIO_BSRR_BR_10 | GPIO_BSRR_BR_11);
   // lower nibble to data lines
-  GPIOB->BSRR |= (character & 0x0F) << 8; // shift from bit[7:0] to bit[15:8]
+  if ((character & 0x08) != 0) {
+    GPIOA->BSRR |= GPIO_BSRR_BS_15;
+  } else {
+    GPIOA->BSRR |= GPIO_BSRR_BR_15;
+  }
+  if ((character & 0x04) != 0) {
+    GPIOA->BSRR |= GPIO_BSRR_BS_12;
+  } else {
+    GPIOA->BSRR |= GPIO_BSRR_BR_12;
+  }
+  if ((character & 0x02) != 0) {
+    GPIOB->BSRR |= GPIO_BSRR_BS_9;
+  } else {
+    GPIOB->BSRR |= GPIO_BSRR_BR_9;
+  } 
+  if ((character & 0x01) != 0) {
+    GPIOB->BSRR |= GPIO_BSRR_BS_8;
+  } else {
+    GPIOB->BSRR |= GPIO_BSRR_BR_8;
+  }
   pulse_strobe ();
 }
 
 //============================================================================
 
-void delay (void) {
-  //a delay used by the LCD functions.
-  volatile uint32_t count;
-  for (count=0;count<delay_cnt;count++);
+
+static void delay(uint32_t microseconds) {
+  /* Hangs for specified number of microseconds. */
+  volatile uint32_t counter = 0;
+  microseconds *= 3;
+  for(; counter<microseconds; counter++) {
+    __asm("nop");
+    __asm("nop");
+  }
 }
 
-//============================================================================
-
-void pulse_strobe (void) {
+static void pulse_strobe (void) {
   //Pulse the strobe line of the LCD to indicate that data is ready.
-  delay ();
-  GPIOC->BSRR |= GPIO_BSRR_BS_15;// pull E (PC15) high
-  delay ();
+  delay (20);
   GPIOC->BSRR |= GPIO_BSRR_BR_15;// pull E (PC15) low
-  delay ();
+  delay (20);
   GPIOC->BSRR |= GPIO_BSRR_BS_15;// pull E (PC15) high
+  delay (20);
 }                     
 
 //============================================================================

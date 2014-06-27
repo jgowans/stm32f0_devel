@@ -59,17 +59,17 @@ void init_push_buttons(void) {
 	GPIOA->MODER &= ~GPIO_MODER_MODER2; //set PA3 to input
 	GPIOA->MODER &= ~GPIO_MODER_MODER3; //set PA3 to input 
 	// enable pull-up resistors
-	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_1; //enable pull-down for PA0
-	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_1; //enable pull-down for PA1
-	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_1; //enable pull-down for PA2
-	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_1; //enable pull-down for PA3
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR0_0; //enable pull up for PA0
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR1_0; //enable pull up for PA1
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR2_0; //enable pull up for PA2
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR3_0; //enable pull up for PA3
 }
 
 void init_EXTI(void) {
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN; // clock for the system configuration controller
 	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA; // set interrupt 12 to be sourced from port B for EXTICR4
 	EXTI->IMR |= EXTI_IMR_MR0; // un-mask the interrupt
-	EXTI->RTSR |= EXTI_RTSR_TR0; // enable the rising edge trigger for interrupt 12
+	EXTI->FTSR |= EXTI_FTSR_TR0; // enable the falling edge trigger for interrupt 12
 	
 }
 void init_NVIC(void) {

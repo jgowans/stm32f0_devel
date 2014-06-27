@@ -47,12 +47,12 @@ void main(void) {
   for (uint32_t pos = 0; pos < sizeof(test_pattern); pos++) {
     write_to_address(pos, test_pattern[pos]);
   }
-  GPIOB->ODR = 0xAA;
+  GPIOB->BSRR = 0xAA;
   // output 0xAA if correct, else 0x01
   for (uint32_t pos = 0; pos < sizeof(test_pattern); pos++) {
     uint8_t data_in = read_from_address(pos);
     if  (data_in != test_pattern[pos]) {
-      GPIOB->ODR = 0x01;
+      GPIOB->BSRR = (0xF0 << 16); //reset the upper nibble
     }
   }
   for(;;);
@@ -149,6 +149,7 @@ void init_leds(void) {
 }
 
 void delay(uint32_t delay_in_us) {
-  uint32_t loop_iterations = (delay_in_us*10)/17;
+  //uint32_t loop_iterations = (delay_in_us*10)/17;
+  uint32_t loop_iterations = delay_in_us;
   for (volatile int i = 0; i < loop_iterations; i++);
 }
