@@ -52,6 +52,7 @@ void main(void)
 	init_dac();
 	for(;;) {
 		DAC->DHR12R1 = table_mountain[pos++];
+                for (uint32_t i = 0; i < 180; i++);
 		if (pos >= ( sizeof(table_mountain) / sizeof(table_mountain[0]) )) {
 			pos = 0;
 		}
