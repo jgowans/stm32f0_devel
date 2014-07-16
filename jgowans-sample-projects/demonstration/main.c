@@ -13,7 +13,7 @@ uint8_t get_pot_value(uint32_t pot_number);
 void test_RG_LED(void);
 void test_temperature_sensor(void);
 void write_magic_to_eeprom(void);
-void lock_crystal(void);
+void assert_crystal_locked(void);
 void serial_loopback(void);
 void init_adc(void);
 void init_leds(void);
@@ -29,6 +29,8 @@ void main(void) {
   lcd_init();
   // flash some sort of welcome message
   lcd_two_line_write("Peripherals", "initialised.");
+  
+  assert_crystal_locked();
 
   if (check_for_eeprom_magic() == 0) {
     cycle_leds();
@@ -41,7 +43,6 @@ void main(void) {
   }
   lcd_two_line_write("EEPROM test pass", "Press S0");
   while (!push_button_pressed(0));
-  lock_crystal();
   serial_loopback();
 }
 
@@ -64,7 +65,7 @@ void cycle_leds(void) {
   // ISR toggles between 0xAA and 0x55, also changes RG PWM.
   RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
   TIM14->PSC = 8000;
-  TIM14->ARR = 50; // period should be (8e6)/(8e3 * 50) = 50 ms.
+  TIM14->ARR = 300; // period should be (48e6)/(8e3 * 300) = 50 ms.
   TIM14->DIER |= TIM_DIER_UIE; // enable the update event interrupt
   TIM14->CR1 |= TIM_CR1_CEN; // enable the counter
   // enable the interrupt in the NVIC
@@ -170,12 +171,12 @@ void write_magic_to_eeprom(void) {
  }
 }
 
-void lock_crystal(void) {
-  lcd_two_line_write("Attempting to", "lock crystal");
-  lcd_two_line_write("Crystal locked.", "Press S1");
-  // lock crystal here
-  while (!push_button_pressed(1));
-  // unlock crystal here, or go back to 8MHz
+void assert_crystal_locked(void) {
+  SystemCoreClockUpdate(); // update the SystemCoreClock global variable
+  if (SystemCoreClock != 48000000) {
+   lcd_two_line_write("Crystal not ", "locked. Fail.");
+   for(;;);
+  }
   return;
 }
 

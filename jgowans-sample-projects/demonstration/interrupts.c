@@ -12,12 +12,12 @@ void TIM14_IRQHandler(void) {
 
   // set PWM's here dependant on direction
 
-  if (pwm_value == 20) { // max value, start going down
-    GPIOB->ODR = 0xAA;
+  if (pwm_value == 10) { // max value, start going down
+    GPIOB->ODR = 0xFF;
     direction = -1; 
   } 
   if (pwm_value == 0) { // min value, start going up
-    GPIOB->ODR = 0x55;
+    GPIOB->ODR = 0x00;
     direction = 1;
   }
 
