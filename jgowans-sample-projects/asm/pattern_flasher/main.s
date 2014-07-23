@@ -1,10 +1,7 @@
-
-
 @@@ Simple ASM code, ported to STM32F0 by Thomas J. Mathew, June 2014
 @@@ Designed to work with the UCT development board.
 
 @@@ This code flashes two different patterns on the LEDs with a short delay between.
-
 
 @@@ Directives
         .thumb                  @ (same as saying '.code 16')
@@ -36,45 +33,45 @@ vectors:
 _start:
 
         @@ Enable the Port B peripheral clock by setting bit 17
-        ldr r6, = RCC_AHBENR
-        ldr r0, = #0x00040000 @0b 0000 0000 0000 0100 0000 0000 0000 0000
-        str r0, [r6]
+        LDR R6, = RCC_AHBENR
+        LDR R0, = #0x00040000 @0b 0000 0000 0000 0100 0000 0000 0000 0000
+        STR R0, [R6]
         
         @@ Set the mode bits for Port B so that pB0-PB7 are configured as push-pull outputs. 
         @@ GPIOB_MODER{0-7} = [0 1]
         @@ No need to set GPIOB_OTYPER as its reset state is all 0s (push-pull enabled)
         @@  = > MODER = 0b0000 0000 0000 0000 0101 0101 0101 0101
 
-        ldr r6, = GPIOB_MODER
-        ldr r0, = 0x00005555
-        str r0, [r6]
+        LDR R6, = GPIOB_MODER
+        LDR R0, = 0x00005555
+        STR R0, [R6]
 
         @@ Load R2 and R3 with the "on" and "off" constants
-        movs r2, #0xAA              @ value to turn on LED
-        movs r3, #0x55              @ value to turn off LED
+        movs R2, #0xAA              @ value to turn on LED
+        movs R3, #0x55              @ value to turn off LED
 
-        ldr r6, = GPIOB_ODR    @  point to Port C output data register
+        LDR R6, = GPIOB_ODR    @  point to Port C output data register
         
 loop:
-        str r2, [r6]           @ turn on LEDs
-        ldr r1, = LEDDELAY
-        bl delay
-        str r3, [r6]           @ turn off LEDs
-        ldr r1, = LEDDELAY
-        bl delay
-        b loop
+        STR R2, [R6]           @ turn on LEDs
+        LDR R1, = LEDDELAY
+        BL delay
+        STR R3, [R6]           @ turn off LEDs
+        LDR R1, = LEDDELAY
+        BL delay
+        B loop
 delay:
-        subs r1, 1
-        bne delay
-        bx lr
+        SUBS R1, 1
+        BNE delay
+        BX lr
 
-_dummy:                        @ if any int gets triggered, just hang in a loop
+_dummy:                        @ if any interrupt gets triggered, just hang in a loop
 _nmi_handler:
 _hard_fault:
 _memory_fault:
 _bus_fault:
 _usage_fault:
-        adds r0, #1
-        adds r1, #1
+        adds R0, #1
+        adds R1, #1
         b _dummy 
 
