@@ -28,7 +28,7 @@ CS must be held high for 5 ms after a write instruction to trigger the write.
 #define READ 0b00000011
 #define WRITE 0b00000010
 
-static void delay(uint32_t delay_in_us);
+static void delay(uint32_t microseconds);
 
 void eeprom_write_to_address(uint16_t address, uint8_t data) {
   uint8_t dummy; // a variable which will be used to pull junk from the DR
@@ -100,7 +100,7 @@ void eeprom_init_spi(void) {
   // clock enable to SPI2
   RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
   SPI2->CR1 |= SPI_CR1_BIDIOE; // enable output
-  SPI2->CR1 |= (SPI_CR1_BR_0 |  SPI_CR1_BR_1); // set baud to fpclk / 16
+  SPI2->CR1 |= (SPI_CR1_BR_0 |  SPI_CR1_BR_1); // set baud to fpclk / 16 = 3 MHz
   SPI2->CR1 |= SPI_CR1_MSTR; // set to master mode
   SPI2->CR2 |= SPI_CR2_FRXTH; // set RX threshold to be 8 bits
   SPI2->CR2 |= SPI_CR2_SSOE; // enable slave output to work in master mode
@@ -108,8 +108,12 @@ void eeprom_init_spi(void) {
   SPI2->CR1 |= SPI_CR1_SPE; // enable the SPI peripheral
 }
 
-void delay(uint32_t delay_in_us) {
-  uint32_t loop_iterations = (delay_in_us*10);
-  for (volatile int i = 0; i < loop_iterations; i++);
+static void delay(uint32_t microseconds) {
+  /* Hangs for specified number of microseconds. */
+  volatile uint32_t counter = 0;
+  microseconds *= 3;
+  for(; counter<microseconds; counter++) {
+    __asm("nop");
+    __asm("nop");
+  }
 }
-
