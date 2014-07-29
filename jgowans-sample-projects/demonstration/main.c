@@ -62,7 +62,7 @@ static uint32_t check_for_eeprom_magic(void) {
 }
 
 static void cycle_leds(void) {
-  lcd_two_line_write("Factory defaults", "Press S0");
+  lcd_two_line_write("Intro Lab!", "Press S0");
   init_RG_LED();
   // enable the 50 ms interrupt. 
   // ISR toggles between 0xAA and 0x55, also changes RG PWM.
