@@ -5,7 +5,7 @@
 
 /*
 Properties of the SPI EEPROM are:
-fmax = 2 MHz
+fmax = 10 MHz
 SPI modes (0,0) and (1,1) are supported
 Mode 0,0: clock idles low, data clocked in rising edge
 The device must be enabled for writing by setting bits in the status register
@@ -32,11 +32,11 @@ CS must be held high for 5 ms after a write instruction to trigger the write.
 #define WRITE 0b00000010
 
 void main(void);
-void init_spi(void);
-void init_leds(void);
-void write_to_address(uint16_t address, uint8_t data);
-uint8_t read_from_address(uint16_t address);
-void delay(uint32_t delay_in_us);
+static void init_spi(void);
+static void init_leds(void);
+static void write_to_address(uint16_t address, uint8_t data);
+static uint8_t read_from_address(uint16_t address);
+static void delay(uint32_t delay_in_us);
 
 static uint8_t test_pattern[] = {0xAA, 0x42, 0xF0, 0x01, 0x10};
 
@@ -58,7 +58,7 @@ void main(void) {
   for(;;);
 }
 
-void write_to_address(uint16_t address, uint8_t data) {
+static void write_to_address(uint16_t address, uint8_t data) {
   uint8_t dummy; // a variable which will be used to pull junk from the DR
 
   // first, set the Write Enable latch
@@ -91,7 +91,7 @@ void write_to_address(uint16_t address, uint8_t data) {
   delay(5000);
 }
 
-uint8_t read_from_address(uint16_t address) {
+static uint8_t read_from_address(uint16_t address) {
   uint8_t dummy; // a variable which will be used to pull junk from the DR
   // send the read instruction
   GPIOB->BSRR |= GPIO_BSRR_BR_12; // pull CS low
@@ -115,7 +115,7 @@ uint8_t read_from_address(uint16_t address) {
   return dummy;
 }
 
-void init_spi(void) {
+static void init_spi(void) {
   // clock to PB
   RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable clock for SPI port
   // no need to map pins to the perpiheral - they are AF0
@@ -136,7 +136,7 @@ void init_spi(void) {
   SPI2->CR1 |= SPI_CR1_SPE; // enable the SPI peripheral
 }
 
-void init_leds(void) {
+static void init_leds(void) {
   RCC->AHBENR |= RCC_AHBENR_GPIOBEN; //enable clock for LEDs
   GPIOB->MODER |= GPIO_MODER_MODER0_0; //set PB0 to output
   GPIOB->MODER |= GPIO_MODER_MODER1_0; //set PB1 to output
@@ -148,8 +148,13 @@ void init_leds(void) {
   GPIOB->MODER |= GPIO_MODER_MODER7_0; //set PB7 to output
 }
 
-void delay(uint32_t delay_in_us) {
-  //uint32_t loop_iterations = (delay_in_us*10)/17;
-  uint32_t loop_iterations = delay_in_us;
-  for (volatile int i = 0; i < loop_iterations; i++);
+static void delay(uint32_t delay_in_us) {
+  /* Hangs for specified number of microseconds. */
+  volatile uint32_t counter = 0;
+  delay_in_us *= 3;
+  for(; counter < delay_in_us; counter++) {
+    __asm("nop");
+    __asm("nop");
+  }
 }
+
