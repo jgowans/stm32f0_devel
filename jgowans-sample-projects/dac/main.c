@@ -47,22 +47,22 @@ uint16_t table_mountain[] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0
 
 void main(void)
 {
-	uint16_t pos = 0;
-	uint16_t i;
-	init_dac();
-	for(;;) {
-		DAC->DHR12R1 = table_mountain[pos++];
+  uint16_t pos = 0;
+  uint16_t i;
+  init_dac();
+  for(;;) {
+    DAC->DHR12R1 = table_mountain[pos++];
                 for (uint32_t i = 0; i < 180; i++);
-		if (pos >= ( sizeof(table_mountain) / sizeof(table_mountain[0]) )) {
-			pos = 0;
-		}
-	}
+    if (pos >= ( sizeof(table_mountain) / sizeof(table_mountain[0]) )) {
+      pos = 0;
+    }
+  }
 }
 
 void init_dac(void) {
-	RCC->APB1ENR |= RCC_APB1ENR_DACEN;
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	GPIOA->MODER |= GPIO_MODER_MODER4;// PA4 as analogue
-	DAC->CR |= DAC_CR_EN1;
-	DAC->CR |= DAC_CR_BOFF1; //disable the buffer to increase voltage swing
+  RCC->APB1ENR |= RCC_APB1ENR_DACEN;
+  RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+  GPIOA->MODER |= GPIO_MODER_MODER4;// PA4 as analogue
+  DAC->CR |= DAC_CR_EN1;
+  DAC->CR |= DAC_CR_BOFF1; //disable the buffer to increase voltage swing
 }
