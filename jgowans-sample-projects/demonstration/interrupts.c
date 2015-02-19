@@ -9,7 +9,7 @@ void TIM14_IRQHandler(void) {
   static int16_t ccr3_to_add = 5;
   static int16_t ccr4_to_add = 6;
   static uint8_t interrupt_counter = 0;
-  static uint8_t direction = 0;
+  static int8_t direction = 0;
 
   
   // ack the interrupt
@@ -31,7 +31,7 @@ void TIM14_IRQHandler(void) {
   TIM2->CCR4 = ccr4_value;
 
   interrupt_counter += 1;
-  if (interrupt_counter == 100) { // toggle after 100 interrupts
+  if (interrupt_counter == 50) { // toggle after 100 interrupts
     interrupt_counter = 0;
     if (direction == 0) {
       GPIOB->ODR = 0x01;

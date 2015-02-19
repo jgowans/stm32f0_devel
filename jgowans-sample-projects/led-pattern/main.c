@@ -14,15 +14,15 @@ int main(void);
 int main(void)
 {
     RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-	GPIOB->MODER = 0x00005555;
-	GPIOB->ODR = 0x0000;
-	for (;;) {
-		delay();
-		GPIOB->ODR += 1;
-	}
+  GPIOB->MODER = 0x00005555;
+  GPIOB->ODR = 0x0000;
+  for (;;) {
+    delay();
+    GPIOB->ODR += 1;
+  }
 }
 
 void delay(void) {
     volatile uint32_t i = 0;
-	for(; i < 65535; i++);
+  for(; i < 65535; i++);
 }

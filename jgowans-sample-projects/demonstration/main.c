@@ -186,10 +186,13 @@ static void init_adc(void) {
   RCC->APB2ENR |= RCC_APB2ENR_ADCEN; //enable clock for ADC
   RCC->AHBENR |= RCC_AHBENR_GPIOAEN; //enable clock for port
   GPIOA->MODER |= GPIO_MODER_MODER6; //set PA6 to analogue mode
-  ADC1->CHSELR |= ADC_CHSELR_CHSEL6;// select channel 6
-  ADC1->CFGR1 |= ADC_CFGR1_RES_1; // resolution to 8 bit 
+  // do calibration
+  ADC1->CR |= ADC_CR_ADCAL;
+  while( (ADC1->CR & ADC_CR_ADCAL) != 0);
   ADC1->CR |= ADC_CR_ADEN; // set ADEN=1 in the ADC_CR register
   while((ADC1->ISR & ADC_ISR_ADRDY) == 0); //wait until ADRDY==1 in ADC_ISR
+  ADC1->CHSELR |= ADC_CHSELR_CHSEL6;// select channel 6
+  ADC1->CFGR1 |= ADC_CFGR1_RES_1; // resolution to 8 bit 
 }
 
 
