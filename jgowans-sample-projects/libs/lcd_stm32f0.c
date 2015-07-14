@@ -21,6 +21,7 @@ enum TypeOfCharacter {
 static void delay (uint32_t microseconds);
 static void pulse_strobe (void);
 static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type);
+static void lcd_write4bits(uint8_t value);
 
 //============================================================================
 
@@ -43,8 +44,6 @@ void lcd_two_line_write(uint8_t* line1, uint8_t* line2) {
 void lcd_init () {
   /*This function sets up the port lines for the LCD and initializes
   the LCD module for use.*/
-  uint32_t count;
-
   delay(30000); //allow the LCD 30 ms power up time
   // set the relevant pins to outputs
   RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
@@ -57,12 +56,20 @@ void lcd_init () {
   GPIOA->MODER |= GPIO_MODER_MODER12_0;
   GPIOA->MODER |= GPIO_MODER_MODER15_0;
 
-  lcd_command(LCD_EIGHT_BIT_MODE); // 0x33
-  lcd_command(LCD_EIGHT_BIT_MODE); // 0x33
-  lcd_command(LCD_FOUR_BIT_MODE); // 0x32
-  lcd_command(LCD_DISPLAY_ON); // 0x0C
+  // in case in 2nd nibble of 4 bit tansfer, this goes to 1st nibble
+  // if byte in 8-bit mode, keeps in 8-bit mode
+  lcd_write4bits(0x03);   
+  delay(5000);
+  lcd_write4bits(0x03);  // garanteed to be byte of 8-bit data for first byte of 4-bit.
+  delay(1);
+  lcd_write4bits(0x03); // necessary in case this is the 2nd nibble of 4-bit transfer.
+  delay(1);
+  // switch to 4-bit. This will latch in a byte as it's garanteed to now be in 8-bit
+  lcd_write4bits(0x02);   
   lcd_command(LCD_FOUR_BIT_TWO_LINE_MODE); //0x28
-  lcd_command(LCD_CLEAR_DISPLAY); // 0x01*/
+  lcd_command(LCD_DISPLAY_OFF); // 0x08
+  lcd_command(LCD_CLEAR_DISPLAY); // 0x01
+  lcd_command(LCD_DISPLAY_ON); // 0x0C
 }
 
 //============================================================================
@@ -71,7 +78,8 @@ void lcd_command (enum LcdCommand command) {
   //This function sends a command to the LCD. 
   //Care is taken not to interfere with the other lines on the port.
   lcd_put((uint8_t)command, COMMAND);
-  delay(3000); // 3 ms (double the delay we should need for any command)
+  delay(2000); // 2 ms is more than the maximum delay we should need for any command.
+  // TODO: fix the above to have variable lengths as required by different commands.
 }
 
 //============================================================================
@@ -86,28 +94,16 @@ static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
   } else if (ch_type == COMMAND) {
     GPIOC->BSRR |= GPIO_BSRR_BR_14;// pull RS (PC14) low
   }
-  // upper nibble to data lines
-  if ((character & 0x80) != 0) {
-    GPIOA->BSRR |= GPIO_BSRR_BS_15;
-  } else {
-    GPIOA->BSRR |= GPIO_BSRR_BR_15;
-  }
-  if ((character & 0x40) != 0) {
-    GPIOA->BSRR |= GPIO_BSRR_BS_12;
-  } else {
-    GPIOA->BSRR |= GPIO_BSRR_BR_12;
-  }
-  if ((character & 0x20) != 0) {
-    GPIOB->BSRR |= GPIO_BSRR_BS_9;
-  } else {
-    GPIOB->BSRR |= GPIO_BSRR_BR_9;
-  } 
-  if ((character & 0x10) != 0) {
-    GPIOB->BSRR |= GPIO_BSRR_BS_8;
-  } else {
-    GPIOB->BSRR |= GPIO_BSRR_BR_8;
-  }
+  // write upper nibble
+  lcd_write4bits(character >> 4);
   pulse_strobe ();
+  // write lower nibble
+  lcd_write4bits(character);
+  pulse_strobe ();
+}
+
+// This function outputs the lower 4 bits onto the data lines
+static void lcd_write4bits(uint8_t character) {
   // lower nibble to data lines
   if ((character & 0x08) != 0) {
     GPIOA->BSRR |= GPIO_BSRR_BS_15;
@@ -129,7 +125,6 @@ static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
   } else {
     GPIOB->BSRR |= GPIO_BSRR_BR_8;
   }
-  pulse_strobe ();
 }
 
 //============================================================================
@@ -147,11 +142,11 @@ static void delay(uint32_t microseconds) {
 
 static void pulse_strobe (void) {
   //Pulse the strobe line of the LCD to indicate that data is ready.
-  delay (20);
-  GPIOC->BSRR |= GPIO_BSRR_BR_15;// pull E (PC15) low
-  delay (20);
+  delay (1);
   GPIOC->BSRR |= GPIO_BSRR_BS_15;// pull E (PC15) high
-  delay (20);
+  delay (1);
+  GPIOC->BSRR |= GPIO_BSRR_BR_15;// pull E (PC15) low
+  delay (1);
 }                     
 
 //============================================================================
