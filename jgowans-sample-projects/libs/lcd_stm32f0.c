@@ -62,11 +62,12 @@ void lcd_init () {
   lcd_write4bits(0x03);   
   delay(4100);
   lcd_write4bits(0x03);  // garanteed to be byte of 8-bit data for first byte of 4-bit.
-  delay(1);
+  delay(39);
   lcd_write4bits(0x03); // necessary in case this is the 2nd nibble of 4-bit transfer.
-  delay(1);
+  delay(39);
   // switch to 4-bit. This will latch in a byte as it's garanteed to now be in 8-bit
   lcd_write4bits(0x02);   
+  delay(39);
   lcd_command(LCD_FOUR_BIT_TWO_LINE_MODE); //0x28
   lcd_command(LCD_DISPLAY_OFF); // 0x08
   lcd_command(LCD_CLEAR_DISPLAY); // 0x01
