@@ -20,7 +20,7 @@ void main(void) {
   GPIOB->MODER |= (GPIO_MODER_MODER0_0 | GPIO_MODER_MODER1_0 | GPIO_MODER_MODER2_0 | GPIO_MODER_MODER3_0 | 
         GPIO_MODER_MODER4_0 | GPIO_MODER_MODER5_0 | GPIO_MODER_MODER6_0 | GPIO_MODER_MODER7_0);
   for(;;) {
-    for(i=0; i < 65535; i++); // delay for a few hundred milliseconds
+    for(i=0; i < 65535; i++); // delay for a few hundred microseconds
     GPIOB->ODR += 1; // increment the patten on the LEDs
   }
 }

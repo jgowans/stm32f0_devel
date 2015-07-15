@@ -29,6 +29,7 @@ void lcd_string(uint8_t *string_to_print) {
   uint32_t count=0;
   while (string_to_print[count] != 0) {
     lcd_put (string_to_print[count], TEXT);
+    delay(43); // a DRAM write requires at least 43 us execution time
     count++;
   }
 }
@@ -44,7 +45,6 @@ void lcd_two_line_write(uint8_t* line1, uint8_t* line2) {
 void lcd_init () {
   /*This function sets up the port lines for the LCD and initializes
   the LCD module for use.*/
-  delay(30000); //allow the LCD 30 ms power up time
   // set the relevant pins to outputs
   RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
   RCC->AHBENR |= RCC_AHBENR_GPIOBEN; 
@@ -56,10 +56,11 @@ void lcd_init () {
   GPIOA->MODER |= GPIO_MODER_MODER12_0;
   GPIOA->MODER |= GPIO_MODER_MODER15_0;
 
+  delay(30000); //allow the LCD 30 ms power up time
   // in case in 2nd nibble of 4 bit tansfer, this goes to 1st nibble
   // if byte in 8-bit mode, keeps in 8-bit mode
   lcd_write4bits(0x03);   
-  delay(5000);
+  delay(4100);
   lcd_write4bits(0x03);  // garanteed to be byte of 8-bit data for first byte of 4-bit.
   delay(1);
   lcd_write4bits(0x03); // necessary in case this is the 2nd nibble of 4-bit transfer.
@@ -78,28 +79,26 @@ void lcd_command (enum LcdCommand command) {
   //This function sends a command to the LCD. 
   //Care is taken not to interfere with the other lines on the port.
   lcd_put((uint8_t)command, COMMAND);
-  delay(2000); // 2 ms is more than the maximum delay we should need for any command.
+  delay(1530); // 1.53 ms is the maximum delay we should need for any command.
   // TODO: fix the above to have variable lengths as required by different commands.
 }
 
 //============================================================================
 
 static void lcd_put (uint8_t character, enum TypeOfCharacter ch_type) {
-  //Puts a single character on the LCD at the next position on the screen.
-  //The character to be printed is in the input parameter. For numbers, letters 
-  //and other common characters the ASCII code will produce correct display.
-  //Refer to the Hitachi HD44780 datasheet for full character set information.
-  if (ch_type == TEXT) {
-    GPIOC->BSRR |= GPIO_BSRR_BS_14;// pull RS (PC14) high
-  } else if (ch_type == COMMAND) {
-    GPIOC->BSRR |= GPIO_BSRR_BR_14;// pull RS (PC14) low
-  }
-  // write upper nibble
-  lcd_write4bits(character >> 4);
-  pulse_strobe ();
-  // write lower nibble
-  lcd_write4bits(character);
-  pulse_strobe ();
+    //Puts a single character on the LCD at the next position on the screen.
+    //The character to be printed is in the input parameter. For numbers, letters 
+    //and other common characters the ASCII code will produce correct display.
+    //Refer to the Hitachi HD44780 datasheet for full character set information.
+    if (ch_type == TEXT) {
+        GPIOC->BSRR |= GPIO_BSRR_BS_14;// pull RS (PC14) high
+    } else if (ch_type == COMMAND) {
+        GPIOC->BSRR |= GPIO_BSRR_BR_14;// pull RS (PC14) low
+    }
+    // write upper nibble
+    lcd_write4bits(character >> 4);
+    // write lower nibble
+    lcd_write4bits(character);
 }
 
 // This function outputs the lower 4 bits onto the data lines
@@ -125,6 +124,7 @@ static void lcd_write4bits(uint8_t character) {
   } else {
     GPIOB->BSRR |= GPIO_BSRR_BR_8;
   }
+  pulse_strobe ();
 }
 
 //============================================================================
@@ -142,11 +142,11 @@ static void delay(uint32_t microseconds) {
 
 static void pulse_strobe (void) {
   //Pulse the strobe line of the LCD to indicate that data is ready.
-  delay (1);
+  delay(1);
   GPIOC->BSRR |= GPIO_BSRR_BS_15;// pull E (PC15) high
-  delay (1);
+  delay(1);
   GPIOC->BSRR |= GPIO_BSRR_BR_15;// pull E (PC15) low
-  delay (1);
+  delay(1);
 }                     
 
 //============================================================================
