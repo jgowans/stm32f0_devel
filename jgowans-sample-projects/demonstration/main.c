@@ -73,6 +73,9 @@ static void cycle_leds(void) {
   TIM14->CR1 |= TIM_CR1_CEN; // enable the counter
   // enable the interrupt in the NVIC
   NVIC_EnableIRQ(TIM14_IRQn);
+  while( (GPIOA->IDR & 0b1111) != 0b1111) {
+      lcd_two_line_write("Release all", "push buttons");
+  }
   while (!push_button_pressed(0));
   NVIC_DisableIRQ(TIM14_IRQn); 
   TIM14->CR1 &= ~TIM_CR1_CEN; // disable the counter
@@ -129,15 +132,19 @@ static void test_temperature_sensor(void) {
   lcd_two_line_write("Testing temprtr", "sensor.");
   // initialise IIC
   temp_sensor_init_iic();
-  while( (sensor_value > 30) || (sensor_value < 20) ) {
+  while(1) {
     sensor_value = temp_sensor_read();
     GPIOB->ODR = sensor_value;
-  }
-  lcd_two_line_write("Tempratur sensor", "passed. Press S3");
-
-  while( !push_button_pressed(3) ) { 
-    sensor_value = temp_sensor_read();
-    GPIOB->ODR = sensor_value;
+    if(sensor_value == 0) {
+        lcd_two_line_write("No comms with", "temp sensor.");
+    } else if ( (sensor_value > 35) || (sensor_value < 15) ) {
+        lcd_two_line_write("Temp sensor val", "out of range");
+    } else {
+        lcd_two_line_write("Tempratur sensor", "passed. Press S3");
+        if(push_button_pressed(3)) {
+            return;
+        }
+    }
   }
 }
 
