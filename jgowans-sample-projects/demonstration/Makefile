@@ -16,19 +16,21 @@ OBJS = \
        system_stm32f0xx.o \
        lcd_stm32f0.o \
        temp_sensor_lib.o \
+       mountain.o \
        eeprom_lib.o \
        interrupts.o
 
 main.elf: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o main.elf $(OBJS)
 	
-main.o: main.c temp_sensor_lib.h temp_sensor_lib.c lcd_stm32f0.h lcd_stm32f0.c eeprom_lib.h eeprom_lib.c
+main.o: main.c temp_sensor_lib.h temp_sensor_lib.c lcd_stm32f0.h lcd_stm32f0.c eeprom_lib.h eeprom_lib.c mountain.c mountain.h
 startup_stm32f051.o: startup_stm32f051.s
 temp_sensor_lib.o: temp_sensor_lib.c temp_sensor_lib.h
 eeprom_lib.o: eeprom_lib.c eeprom_lib.h
 lcd_stm32f0.o: lcd_stm32f0.c lcd_stm32f0.h
 interrupts.o: interrupts.c
 system_stm32f0xx.o: system_stm32f0xx.c
+mountain.o: mountain.c mountain.h
 
 clean:
 	$(RM) *.o *.elf *.bin

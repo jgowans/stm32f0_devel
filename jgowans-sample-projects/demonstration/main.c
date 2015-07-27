@@ -5,6 +5,7 @@
 #include "eeprom_lib.h"
 #include "temp_sensor_lib.h"
 #include "lcd_stm32f0.h"
+#include "mountain.h"
 
 static uint32_t check_for_eeprom_magic(void); // will return 1 if magic found
 static void cycle_leds(void);
@@ -20,6 +21,8 @@ static void init_leds(void);
 static void init_push_buttons(void);
 static void init_usart(void);
 static void init_RG_LED(void);
+static void init_dac(void);
+static void init_dma_and_tim(void);
 static void deinit_RG_LED(void);
 static uint32_t push_button_pressed(uint32_t button_number);
 
@@ -128,24 +131,30 @@ static void test_RG_LED(void) {
 }
 
 static void test_temperature_sensor(void) {
-  uint8_t sensor_value = 0;
-  lcd_two_line_write("Testing temprtr", "sensor.");
-  // initialise IIC
-  temp_sensor_init_iic();
-  while(1) {
-    sensor_value = temp_sensor_read();
-    GPIOB->ODR = sensor_value;
-    if(sensor_value == 0) {
-        lcd_two_line_write("No comms with", "temp sensor.");
-    } else if ( (sensor_value > 35) || (sensor_value < 15) ) {
-        lcd_two_line_write("Temp sensor val", "out of range");
-    } else {
-        lcd_two_line_write("Tempratur sensor", "passed. Press S3");
-        if(push_button_pressed(3)) {
-            return;
+    uint8_t sensor_value = 0;
+    int8_t state = -1;
+    lcd_two_line_write("Testing temprtr", "sensor.");
+    // initialise IIC
+    temp_sensor_init_iic();
+    while(1) {
+        sensor_value = temp_sensor_read();
+        GPIOB->ODR = sensor_value;
+        if((sensor_value == 0) && (state != 0)) {
+            state = 0;
+            lcd_two_line_write("No comms with", "temp sensor.");
+        } else if (((sensor_value > 35) || (sensor_value < 15)) && (state != 1) ) {
+            state = 1;
+            lcd_two_line_write("Temp sensor val", "out of range");
+        } else if (((sensor_value < 36) && (sensor_value > 14)) && (state != 2) ) {
+            state = 2;
+            lcd_two_line_write("Tempratur sensor", "passed. Press S3");
+        } 
+        if(state == 2) {
+            if(push_button_pressed(3)) {
+                return;
+            }
         }
     }
-  }
 }
 
 static void write_magic_to_eeprom(void) {
@@ -178,6 +187,9 @@ static void assert_crystal_locked(void) {
 
 static void serial_loopback(void) {
   uint8_t received_char;
+  lcd_two_line_write("Enabling easter", "egg. :-)");
+  init_dac();
+  init_dma_and_tim();
   lcd_two_line_write("Attemping to init", "USART loopback");
   init_usart();
   lcd_two_line_write("All tests pass!", "Now in loopback");
@@ -271,6 +283,33 @@ static void init_RG_LED(void) {
   TIM2->CCER |= TIM_CCER_CC4E;
 
   TIM2->CR1 |= TIM_CR1_CEN; // counter enable
+}
+
+static void init_dac(void) {
+    RCC->APB1ENR |= RCC_APB1ENR_DACEN;
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    GPIOA->MODER |= GPIO_MODER_MODER4;// PA4 as analogue
+    DAC->CR |= DAC_CR_EN1;
+    DAC->CR |= DAC_CR_BOFF1; //disable the buffer to increase voltage swing
+}
+
+static void init_dma_and_tim(void) {
+    RCC->AHBENR |= RCC_AHBENR_DMAEN;
+    DMA1_Channel2->CPAR = (uint32_t)(&(DAC->DHR12R1));
+    DMA1_Channel2->CMAR = (uint32_t)table_mountain;
+    DMA1_Channel2->CNDTR = mountain_length();
+    DMA1_Channel2->CCR |= DMA_CCR_DIR;  //read from memory
+    DMA1_Channel2->CCR |= DMA_CCR_CIRC;
+    DMA1_Channel2->CCR |= DMA_CCR_PSIZE_0; //half word
+    DMA1_Channel2->CCR |= DMA_CCR_MSIZE_0; //half word
+    DMA1_Channel2->CCR |= DMA_CCR_MINC;
+    DMA1_Channel2->CCR |= DMA_CCR_EN;
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+    TIM2->PSC = 50;
+    TIM2->ARR = 50;
+    TIM2->CR2 |= TIM_CR2_CCDS; //not sure...
+    TIM2->DIER |= TIM_DIER_UDE;
+    TIM2->CR1 |= TIM_CR1_CEN;
 }
 
 static void deinit_RG_LED(void) {
