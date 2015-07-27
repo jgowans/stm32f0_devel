@@ -14,8 +14,6 @@ void TIM2_IRQHandler(void) {
     GPIOB->ODR += 1;
 }
 
-extern const uint16_t *table_mountain;
-
 void main(void)
 {
     uint32_t i;

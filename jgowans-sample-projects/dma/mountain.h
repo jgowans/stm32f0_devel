@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+const uint16_t table_mountain[778];
 uint32_t mountain_length(void);
 uint32_t mountain_get_element(uint32_t idx);
 
