@@ -6,7 +6,7 @@
         .global _start          @ presents this symbol to the linker. The linker expects this symbol for GDB to use as entry point.
 
 vectors:        
-        .word 0x20007FFF        @ stack pointer default to last byte of RAM
+        .word 0x20002000        @ stack pointer default to outside of RAM
         .word _start + 1        @ reset vector (manually adjust to odd for thumb)
 
 _start:
