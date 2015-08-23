@@ -1,7 +1,7 @@
 CC = arm-none-eabi-gcc
 DEVICE_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Device/ST/STM32F0xx/Include
 ARM_INCLUDES = -I ../../STM32F0xx_StdPeriph_Lib_V1.3.1/Libraries/CMSIS/Include
-CFLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -mcpu=cortex-m0 -mthumb -g -std=c99
+CFLAGS = ${DEVICE_INCLUDES} ${ARM_INCLUDES} -Wall -mcpu=cortex-m0 -mthumb -g -std=c99
 
 AS = arm-none-eabi-as
 ASFLAGS = -mcpu=cortex-m0 -mthumb -g
